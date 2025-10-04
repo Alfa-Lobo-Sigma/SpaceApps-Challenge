@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import type { ImpactResults } from '../types'
+import type { GeologyAdjustedResults } from '../utils/geology'
 import { useLanguage } from '../contexts/LanguageContext'
 import 'leaflet/dist/leaflet.css'
 
@@ -19,10 +20,11 @@ L.Icon.Default.mergeOptions({
 interface ImpactMapProps {
   location: [number, number]
   results: ImpactResults | null
+  adjustedResults: GeologyAdjustedResults | null
   onLocationSelect: (lat: number, lng: number) => void
 }
 
-export default function ImpactMap({ location, results, onLocationSelect }: ImpactMapProps) {
+export default function ImpactMap({ location, results, adjustedResults, onLocationSelect }: ImpactMapProps) {
   const { t } = useLanguage()
   const mapRef = useRef<L.Map | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -104,10 +106,27 @@ export default function ImpactMap({ location, results, onLocationSelect }: Impac
   // Update rings when results change
   useEffect(() => {
     updateRings()
-  }, [results])
+  }, [results, adjustedResults])
 
   const updateRings = () => {
-    if (!mapRef.current || !impactMarkerRef.current || !results) return
+    if (!mapRef.current || !impactMarkerRef.current) return
+
+    const effectiveDevastation =
+      adjustedResults?.adjustedDevastationRadius ?? results?.devastationRadius
+    const effectiveCrater =
+      adjustedResults?.adjustedCraterDiameter ?? results?.craterDiameter
+
+    if (effectiveDevastation == null || effectiveCrater == null) {
+      if (devRingRef.current) {
+        devRingRef.current.remove()
+        devRingRef.current = null
+      }
+      if (craterRingRef.current) {
+        craterRingRef.current.remove()
+        craterRingRef.current = null
+      }
+      return
+    }
 
     const latLng = impactMarkerRef.current.getLatLng()
 
@@ -120,8 +139,8 @@ export default function ImpactMap({ location, results, onLocationSelect }: Impac
     }
 
     // Add new rings
-    const devRadius = results.devastationRadius * 1000 // convert km to meters
-    const craterRadius = (results.craterDiameter / 2) * 1000 // convert km to meters
+    const devRadius = effectiveDevastation * 1000 // convert km to meters
+    const craterRadius = (effectiveCrater / 2) * 1000 // convert km to meters
 
     const devRing = L.circle(latLng, {
       radius: devRadius,

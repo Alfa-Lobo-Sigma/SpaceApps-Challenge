@@ -58,3 +58,5 @@ export interface OrbitalData {
   omega: number  // longitude of ascending node (radians)
   w: number  // argument of perihelion (radians)
 }
+
+export * from './geology'
