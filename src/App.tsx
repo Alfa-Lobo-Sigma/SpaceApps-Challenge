@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import NEOBrowser from './components/NEOBrowser'
 import ImpactParameters from './components/ImpactParameters'
-import OrbitVisualization from './components/OrbitVisualization'
-import ImpactMap from './components/ImpactMap'
+import OrbitVisualization, { OrbitVisualizationHandle } from './components/OrbitVisualization'
+import ImpactMap, { ImpactMapHandle } from './components/ImpactMap'
 import NEOScenarioSummary from './components/NEOScenarioSummary'
 import PreparednessModal from './components/PreparednessModal'
 import MitigationStrategies from './components/MitigationStrategies'
@@ -16,22 +16,41 @@ import ImpactScenarioLibrary from './components/ImpactScenarioLibrary'
 import { IMPACT_SCENARIOS, type ImpactScenario } from './data/impactScenarios'
 import { getDefaultOrbit, parseOrbitalData } from './utils/orbital'
 import OnboardingTutorial from './components/OnboardingTutorial'
+import ExportSharePanel from './components/ExportSharePanel'
+import { parseShareState, currentShareUrl } from './utils/sharing'
 
 function App() {
+  const [initialShare] = useState(() => {
+    if (typeof window === 'undefined') {
+      return null
+    }
+    return parseShareState(window.location.search)
+  })
+
   const [orbitalData, setOrbitalData] = useState<OrbitalData | null>(null)
   const [selectedNEO, setSelectedNEO] = useState<NEO | null>(null)
   const [impactParams, setImpactParams] = useState<ImpactParams>(() =>
-    normalizeImpactParams({
-      diameter: 2000,
-      velocity: 17,
-      density: 3000,
-      target: 'continental'
-    })
+    normalizeImpactParams(
+      initialShare?.params ?? {
+        diameter: 2000,
+        velocity: 17,
+        density: 3000,
+        target: 'continental',
+      }
+    )
   )
   const [impactResults, setImpactResults] = useState<ImpactResults | null>(null)
-  const [impactLocation, setImpactLocation] = useState<[number, number]>([28.632995, -106.0691])
+  const [impactLocation, setImpactLocation] = useState<[number, number]>(() =>
+    initialShare?.location ?? [28.632995, -106.0691]
+  )
   const [isPreparednessOpen, setPreparednessOpen] = useState(false)
   const [isTutorialOpen, setTutorialOpen] = useState(false)
+
+  const shareParamsRef = useRef<ImpactParams | null>(initialShare?.params ?? null)
+  const shareLocationRef = useRef<[number, number] | null>(initialShare?.location ?? null)
+
+  const orbitRef = useRef<OrbitVisualizationHandle>(null)
+  const mapRef = useRef<ImpactMapHandle>(null)
 
   const geologyAssessment = useMemo(
     () =>
@@ -51,7 +70,10 @@ function App() {
   const handleNEOSelect = (neo: NEO, orbital: OrbitalData) => {
     setSelectedNEO(neo)
     setOrbitalData(orbital)
-    if (neo.impact_scenario?.location) {
+    if (shareLocationRef.current) {
+      setImpactLocation(shareLocationRef.current)
+      shareLocationRef.current = null
+    } else if (neo.impact_scenario?.location) {
       setImpactLocation(neo.impact_scenario.location)
     }
   }
@@ -135,6 +157,33 @@ function App() {
     }
   }
 
+  useEffect(() => {
+    if (!selectedNEO) {
+      return
+    }
+
+    if (shareParamsRef.current) {
+      setImpactParams(normalizeImpactParams(shareParamsRef.current))
+      shareParamsRef.current = null
+    }
+  }, [selectedNEO])
+
+  useEffect(() => {
+    if (!selectedNEO) {
+      return
+    }
+
+    const url = currentShareUrl({
+      neoId: selectedNEO.id,
+      params: impactParams,
+      location: impactLocation,
+    })
+
+    if (url && typeof window !== 'undefined') {
+      window.history.replaceState({}, '', url)
+    }
+  }, [selectedNEO, impactParams, impactLocation])
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header
@@ -143,7 +192,11 @@ function App() {
       />
       <main className="max-w-7xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1">
         <section className="panel rounded-2xl p-4 space-y-4">
-          <NEOBrowser onNEOSelect={handleNEOSelect} onParamsUpdate={handleParamsUpdate} />
+          <NEOBrowser
+            onNEOSelect={handleNEOSelect}
+            onParamsUpdate={handleParamsUpdate}
+            initialNEOId={initialShare?.neoId ?? null}
+          />
           <ImpactScenarioLibrary
             scenarios={IMPACT_SCENARIOS}
             onSelectScenario={handleScenarioLoad}
@@ -161,11 +214,23 @@ function App() {
             onCalculate={handleImpactCalculation}
           />
           <GeologyInsights assessment={geologyAssessment} adjustedResults={adjustedImpactResults} />
+          <ExportSharePanel
+            neo={selectedNEO}
+            impactParams={impactParams}
+            impactResults={impactResults}
+            adjustedResults={adjustedImpactResults}
+            geology={geologyAssessment}
+            location={impactLocation}
+            orbitalData={orbitalData}
+            orbitHandle={orbitRef.current}
+            mapHandle={mapRef.current}
+          />
         </section>
 
         <section className="panel rounded-2xl p-4 space-y-3 lg:col-span-2">
-          <OrbitVisualization orbitalData={orbitalData} />
+          <OrbitVisualization ref={orbitRef} orbitalData={orbitalData} />
           <ImpactMap
+            ref={mapRef}
             location={impactLocation}
             results={impactResults}
             adjustedResults={adjustedImpactResults}

@@ -8,10 +8,12 @@ const API_KEY = 'QVQTFgjfy9QfI1tI237pylpTfp4K53a4lrtYquHL'
 interface NEOBrowserProps {
   onNEOSelect: (neo: NEO, orbital: OrbitalData) => void
   onParamsUpdate: (params: Partial<ImpactParams>) => void
+  initialNEOId?: string | null
 }
 
-export default function NEOBrowser({ onNEOSelect, onParamsUpdate }: NEOBrowserProps) {
+export default function NEOBrowser({ onNEOSelect, onParamsUpdate, initialNEOId }: NEOBrowserProps) {
   const isMounted = useRef(true)
+  const hasInitialised = useRef(false)
   const [neos, setNeos] = useState<NEO[]>([])
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -117,9 +119,17 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate }: NEOBrowserPr
   useEffect(() => {
     isMounted.current = true
     browseNEOs().then((dataset) => {
-      if (!isMounted.current) {
+      if (!isMounted.current || hasInitialised.current) {
         return
       }
+
+      hasInitialised.current = true
+
+      if (initialNEOId) {
+        selectNEO(initialNEOId)
+        return
+      }
+
       const scenarioNeo = dataset.find((item) => item.id === IMPACTOR_2025.id)
       if (scenarioNeo) {
         handleSelection(scenarioNeo)
@@ -128,7 +138,7 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate }: NEOBrowserPr
     return () => {
       isMounted.current = false
     }
-  }, [])
+  }, [initialNEOId])
 
   const filteredNEOs = neos.filter(neo =>
     neo.name.toLowerCase().includes(searchQuery.toLowerCase())
