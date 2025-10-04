@@ -28,6 +28,11 @@ export default function OrbitVisualization({ orbitalData }: OrbitVisualizationPr
   const asteroidMRef = useRef(0)
   const earthMRef = useRef(0)
   const lastTimeRef = useRef(performance.now())
+  const timeScaleRef = useRef(2000000)
+  const astroSpeedRef = useRef(1)
+  const astroDirRef = useRef(1)
+  const earthSpeedRef = useRef(1)
+  const earthDirRef = useRef(1)
 
   const [timeScale, setTimeScale] = useState(2000000)
   const [astroSpeed, setAstroSpeed] = useState(1)
@@ -109,7 +114,12 @@ export default function OrbitVisualization({ orbitalData }: OrbitVisualizationPr
       lastTimeRef.current = now
 
       // Update Earth position
-      earthMRef.current += earthDir * earthSpeed * EARTH_MEAN_MOTION * dt * timeScale
+      earthMRef.current +=
+        earthDirRef.current *
+        earthSpeedRef.current *
+        EARTH_MEAN_MOTION *
+        dt *
+        timeScaleRef.current
       earthMarker.position.set(
         Math.cos(earthMRef.current),
         0,
@@ -119,7 +129,8 @@ export default function OrbitVisualization({ orbitalData }: OrbitVisualizationPr
       // Update asteroid position
       if (currentOrbitRef.current && asteroidMarkerRef.current) {
         const n = getMeanMotion(currentOrbitRef.current.a)
-        asteroidMRef.current += astroDir * astroSpeed * n * dt * timeScale
+        asteroidMRef.current +=
+          astroDirRef.current * astroSpeedRef.current * n * dt * timeScaleRef.current
         const nu = trueAnomalyFromMean(asteroidMRef.current, currentOrbitRef.current.e)
         const pos = positionOnOrbit(nu, currentOrbitRef.current)
         asteroidMarkerRef.current.position.copy(pos)
@@ -150,8 +161,24 @@ export default function OrbitVisualization({ orbitalData }: OrbitVisualizationPr
 
   // Update animation parameters
   useEffect(() => {
-    // These are reactive and will be picked up by the animation loop
-  }, [timeScale, astroSpeed, astroDir, earthSpeed, earthDir])
+    timeScaleRef.current = timeScale
+  }, [timeScale])
+
+  useEffect(() => {
+    astroSpeedRef.current = astroSpeed
+  }, [astroSpeed])
+
+  useEffect(() => {
+    astroDirRef.current = astroDir
+  }, [astroDir])
+
+  useEffect(() => {
+    earthSpeedRef.current = earthSpeed
+  }, [earthSpeed])
+
+  useEffect(() => {
+    earthDirRef.current = earthDir
+  }, [earthDir])
 
   // Update orbit when orbitalData changes
   useEffect(() => {
