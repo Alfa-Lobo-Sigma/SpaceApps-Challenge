@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { NEO, ImpactParams, OrbitalData } from '../types'
 import { parseOrbitalData, getDefaultOrbit } from '../utils/orbital'
 import { IMPACTOR_2025, FALLBACK_NEOS, FALLBACK_NEO_MAP } from '../data/scenarioNeos'
@@ -11,6 +11,7 @@ interface NEOBrowserProps {
 }
 
 export default function NEOBrowser({ onNEOSelect, onParamsUpdate }: NEOBrowserProps) {
+  const isMounted = useRef(true)
   const [neos, setNeos] = useState<NEO[]>([])
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -32,15 +33,21 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate }: NEOBrowserPr
       }
       const data = await response.json()
       const dataset = integrateScenario(data.near_earth_objects || [])
-      setNeos(dataset)
+      if (isMounted.current) {
+        setNeos(dataset)
+      }
       return dataset
     } catch (error) {
       console.error('Error fetching NEOs:', error)
-      setMessage('NeoWs request failed; using embedded training dataset.')
-      setNeos(FALLBACK_NEOS)
+      if (isMounted.current) {
+        setMessage('NeoWs request failed; using embedded training dataset.')
+        setNeos(FALLBACK_NEOS)
+      }
       return FALLBACK_NEOS
     } finally {
-      setLoading(false)
+      if (isMounted.current) {
+        setLoading(false)
+      }
     }
   }
 
@@ -86,9 +93,14 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate }: NEOBrowserPr
         throw new Error(`NeoWs detail responded with ${response.status}`)
       }
       const neo: NEO = await response.json()
-      handleSelection(neo)
+      if (isMounted.current) {
+        handleSelection(neo)
+      }
     } catch (error) {
       console.error('Error fetching NEO details:', error)
+      if (!isMounted.current) {
+        return
+      }
       setMessage('Detail request failed; showing cached orbital solution.')
       const fallback = FALLBACK_NEO_MAP.get(id)
       if (fallback) {
@@ -98,12 +110,19 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate }: NEOBrowserPr
   }
 
   useEffect(() => {
+    isMounted.current = true
     browseNEOs().then((dataset) => {
+      if (!isMounted.current) {
+        return
+      }
       const scenarioNeo = dataset.find((item) => item.id === IMPACTOR_2025.id)
       if (scenarioNeo) {
         handleSelection(scenarioNeo)
       }
     })
+    return () => {
+      isMounted.current = false
+    }
   }, [])
 
   const filteredNEOs = neos.filter(neo =>
