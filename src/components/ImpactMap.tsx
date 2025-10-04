@@ -29,6 +29,7 @@ export default function ImpactMap({ location, results, onLocationSelect }: Impac
   const impactMarkerRef = useRef<L.Marker | null>(null)
   const devRingRef = useRef<L.Circle | null>(null)
   const craterRingRef = useRef<L.Circle | null>(null)
+  const tileLayerRef = useRef<L.TileLayer | null>(null)
 
   // Initialize map
   useEffect(() => {
@@ -37,21 +38,49 @@ export default function ImpactMap({ location, results, onLocationSelect }: Impac
     const map = L.map(containerRef.current, { worldCopyJump: true }).setView(location, 4)
     mapRef.current = map
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 15,
       attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map)
+    })
+    tileLayer.addTo(map)
+    tileLayerRef.current = tileLayer
 
     // Add click handler
-    map.on('click', (e: L.LeafletMouseEvent) => {
+    const handleClick = (e: L.LeafletMouseEvent) => {
       onLocationSelect(e.latlng.lat, e.latlng.lng)
-    })
+    }
+    map.on('click', handleClick)
 
     // Add initial marker
     const marker = L.marker(location, { title: 'Impact' }).addTo(map)
     impactMarkerRef.current = marker
 
     return () => {
+      // Remove click handler
+      map.off('click', handleClick)
+
+      // Remove all layers
+      if (tileLayerRef.current) {
+        tileLayerRef.current.remove()
+        tileLayerRef.current = null
+      }
+
+      if (impactMarkerRef.current) {
+        impactMarkerRef.current.remove()
+        impactMarkerRef.current = null
+      }
+
+      if (devRingRef.current) {
+        devRingRef.current.remove()
+        devRingRef.current = null
+      }
+
+      if (craterRingRef.current) {
+        craterRingRef.current.remove()
+        craterRingRef.current = null
+      }
+
+      // Remove map instance
       map.remove()
       mapRef.current = null
     }

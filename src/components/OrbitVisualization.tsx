@@ -68,10 +68,9 @@ export default function OrbitVisualization({ orbitalData }: OrbitVisualizationPr
     controlsRef.current = controls
 
     // Sun
-    const sun = new THREE.Mesh(
-      new THREE.SphereGeometry(0.05, 32, 16),
-      new THREE.MeshBasicMaterial({ color: 0xffcc66 })
-    )
+    const sunGeometry = new THREE.SphereGeometry(0.05, 32, 16)
+    const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffcc66 })
+    const sun = new THREE.Mesh(sunGeometry, sunMaterial)
     scene.add(sun)
 
     // Earth's orbit (unit circle)
@@ -82,34 +81,35 @@ export default function OrbitVisualization({ orbitalData }: OrbitVisualizationPr
       earthPts.push(Math.cos(r), 0, Math.sin(r))
     }
     earthGeom.setAttribute('position', new THREE.Float32BufferAttribute(earthPts, 3))
-    const earthOrbit = new THREE.Line(
-      earthGeom,
-      new THREE.LineBasicMaterial({ transparent: true, opacity: 0.5 })
-    )
+    const earthOrbitMaterial = new THREE.LineBasicMaterial({ transparent: true, opacity: 0.5 })
+    const earthOrbit = new THREE.Line(earthGeom, earthOrbitMaterial)
     scene.add(earthOrbit)
 
     // Earth marker
-    const earthMarker = new THREE.Mesh(
-      new THREE.SphereGeometry(0.03, 24, 12),
-      new THREE.MeshBasicMaterial({ color: 0x3b82f6 })
-    )
+    const earthGeometry = new THREE.SphereGeometry(0.03, 24, 12)
+    const earthMaterial = new THREE.MeshBasicMaterial({ color: 0x3b82f6 })
+    const earthMarker = new THREE.Mesh(earthGeometry, earthMaterial)
     scene.add(earthMarker)
     earthMarkerRef.current = earthMarker
 
     // Asteroid marker
-    const asteroidMarker = new THREE.Mesh(
-      new THREE.SphereGeometry(0.025, 18, 9),
-      new THREE.MeshBasicMaterial({ color: 0x64d2ff })
-    )
+    const asteroidGeometry = new THREE.SphereGeometry(0.025, 18, 9)
+    const asteroidMaterial = new THREE.MeshBasicMaterial({ color: 0x64d2ff })
+    const asteroidMarker = new THREE.Mesh(asteroidGeometry, asteroidMaterial)
     scene.add(asteroidMarker)
     asteroidMarkerRef.current = asteroidMarker
 
     // Set default orbit
     updateOrbit(getDefaultOrbit())
 
-    // Animation loop
+    // Animation loop with cleanup flag
+    let animationId: number
+    let isRunning = true
+
     const animate = () => {
-      requestAnimationFrame(animate)
+      if (!isRunning) return
+
+      animationId = requestAnimationFrame(animate)
 
       const now = performance.now()
       const dt = Math.min(0.1, (now - lastTimeRef.current) / 1000)
@@ -155,9 +155,47 @@ export default function OrbitVisualization({ orbitalData }: OrbitVisualizationPr
     window.addEventListener('resize', handleResize)
 
     return () => {
-      window.removeEventListener('resize', handleResize)
+      // Stop animation loop
+      isRunning = false
+      if (animationId) {
+        cancelAnimationFrame(animationId)
+      }
+
+      // Dispose controls
+      controls.dispose()
+
+      // Dispose geometries and materials
+      sunGeometry.dispose()
+      sunMaterial.dispose()
+      earthGeom.dispose()
+      earthOrbitMaterial.dispose()
+      earthGeometry.dispose()
+      earthMaterial.dispose()
+      asteroidGeometry.dispose()
+      asteroidMaterial.dispose()
+
+      // Dispose orbit line if exists
+      if (orbitLineRef.current) {
+        orbitLineRef.current.geometry.dispose()
+        ;(orbitLineRef.current.material as THREE.Material).dispose()
+      }
+
+      // Dispose renderer
       renderer.dispose()
-      containerRef.current?.removeChild(renderer.domElement)
+
+      // Remove resize listener
+      window.removeEventListener('resize', handleResize)
+
+      // Remove DOM element
+      if (containerRef.current?.contains(renderer.domElement)) {
+        containerRef.current.removeChild(renderer.domElement)
+      }
+
+      // Clear refs
+      sceneRef.current = null
+      cameraRef.current = null
+      rendererRef.current = null
+      controlsRef.current = null
     }
   }, [])
 
@@ -196,6 +234,7 @@ export default function OrbitVisualization({ orbitalData }: OrbitVisualizationPr
     if (orbitLineRef.current) {
       sceneRef.current.remove(orbitLineRef.current)
       orbitLineRef.current.geometry.dispose()
+      ;(orbitLineRef.current.material as THREE.Material).dispose()
     }
 
     // Generate new orbit
