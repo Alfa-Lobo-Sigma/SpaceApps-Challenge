@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import NEOBrowser from './components/NEOBrowser'
@@ -10,6 +10,8 @@ import PreparednessModal from './components/PreparednessModal'
 import MitigationStrategies from './components/MitigationStrategies'
 import type { OrbitalData, ImpactParams, ImpactResults, NEO } from './types'
 import { mergeImpactParams, normalizeImpactParams } from './utils/validation'
+import { analyzeGeology, adjustImpactResults } from './utils/geology'
+import GeologyInsights from './components/GeologyInsights'
 
 function App() {
   const [orbitalData, setOrbitalData] = useState<OrbitalData | null>(null)
@@ -25,6 +27,21 @@ function App() {
   const [impactResults, setImpactResults] = useState<ImpactResults | null>(null)
   const [impactLocation, setImpactLocation] = useState<[number, number]>([28.632995, -106.0691])
   const [isPreparednessOpen, setPreparednessOpen] = useState(false)
+
+  const geologyAssessment = useMemo(
+    () =>
+      analyzeGeology({
+        location: impactLocation,
+        params: impactParams,
+        neo: selectedNEO,
+      }),
+    [impactLocation, impactParams, selectedNEO]
+  )
+
+  const adjustedImpactResults = useMemo(
+    () => adjustImpactResults(impactResults, geologyAssessment),
+    [impactResults, geologyAssessment]
+  )
 
   const handleNEOSelect = (neo: NEO, orbital: OrbitalData) => {
     setSelectedNEO(neo)
@@ -52,12 +69,19 @@ function App() {
       <main className="max-w-7xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1">
         <section className="panel rounded-2xl p-4 space-y-4">
           <NEOBrowser onNEOSelect={handleNEOSelect} onParamsUpdate={handleParamsUpdate} />
-          <NEOScenarioSummary neo={selectedNEO} impactResults={impactResults} location={impactLocation} />
+          <NEOScenarioSummary
+            neo={selectedNEO}
+            impactResults={impactResults}
+            adjustedResults={adjustedImpactResults}
+            geology={geologyAssessment}
+            location={impactLocation}
+          />
           <ImpactParameters
             params={impactParams}
             onParamsChange={(next) => setImpactParams(normalizeImpactParams(next))}
             onCalculate={handleImpactCalculation}
           />
+          <GeologyInsights assessment={geologyAssessment} adjustedResults={adjustedImpactResults} />
         </section>
 
         <section className="panel rounded-2xl p-4 space-y-3 lg:col-span-2">
@@ -65,6 +89,7 @@ function App() {
           <ImpactMap
             location={impactLocation}
             results={impactResults}
+            adjustedResults={adjustedImpactResults}
             onLocationSelect={handleLocationSelect}
           />
         </section>

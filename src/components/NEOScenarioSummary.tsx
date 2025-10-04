@@ -1,10 +1,12 @@
 import type { NEO, ImpactResults } from '../types'
 import { formatEnergy, formatMT, formatKm } from '../utils/physics'
-import { GEOLOGY_PROFILES } from '../data/usgsGeology'
+import type { GeologyAdjustedResults, GeologyAssessment } from '../utils/geology'
 
 interface NEOScenarioSummaryProps {
   neo: NEO | null
   impactResults: ImpactResults | null
+  adjustedResults: GeologyAdjustedResults | null
+  geology: GeologyAssessment | null
   location: [number, number]
 }
 
@@ -21,7 +23,13 @@ const formatProbability = (value?: number) => {
   return `${Math.round(value * 100)}%`
 }
 
-export default function NEOScenarioSummary({ neo, impactResults, location }: NEOScenarioSummaryProps) {
+export default function NEOScenarioSummary({
+  neo,
+  impactResults,
+  adjustedResults,
+  geology,
+  location,
+}: NEOScenarioSummaryProps) {
   if (!neo) {
     return null
   }
@@ -29,19 +37,17 @@ export default function NEOScenarioSummary({ neo, impactResults, location }: NEO
   const scenario = neo.impact_scenario
   const approach = neo.close_approach_data?.[0]
   const diameter = neo.estimated_diameter?.meters
-  const geology = scenario ? GEOLOGY_PROFILES[scenario.surface_type] : null
-
-  const adjustedDevastation =
-    impactResults && geology
-      ? impactResults.devastationRadius * geology.devastationMultiplier
-      : impactResults?.devastationRadius
-
-  const adjustedCrater =
-    impactResults && geology
-      ? impactResults.craterDiameter * geology.craterMultiplier
-      : impactResults?.craterDiameter
 
   const locationStr = `${location[0].toFixed(2)}°, ${location[1].toFixed(2)}°`
+  const devastationValue = adjustedResults?.adjustedDevastationRadius ?? impactResults?.devastationRadius ?? null
+  const craterValue = adjustedResults?.adjustedCraterDiameter ?? impactResults?.craterDiameter ?? null
+
+  const hazardLabel = adjustedResults
+    ? `Shock ${adjustedResults.hazardAdjustments.shock.toFixed(2)}× • Thermal ${adjustedResults.hazardAdjustments.thermal.toFixed(2)}× • Seismic ${adjustedResults.hazardAdjustments.seismic.toFixed(2)}×`
+    : null
+  const tsunamiLabel = adjustedResults?.hazardAdjustments.tsunami
+    ? ` • Tsunami ${adjustedResults.hazardAdjustments.tsunami.toFixed(2)}×`
+    : ''
 
   return (
     <div className="space-y-3 rounded-xl border border-white/10 bg-black/20 p-4 text-sm">
@@ -88,8 +94,11 @@ export default function NEOScenarioSummary({ neo, impactResults, location }: NEO
         {geology ? (
           <div className="metric rounded-lg p-3">
             <div className="label text-xs">Surface geology context</div>
-            <div className="text-sm font-semibold">{geology.label}</div>
-            <div className="text-[11px] label">{geology.usgsSource}</div>
+            <div className="text-sm font-semibold">{geology.profile.label}</div>
+            <div className="text-[11px] label">
+              {geology.region ? `${geology.region.name} • ` : ''}Confidence {geology.confidence}
+            </div>
+            <div className="text-[11px] label">{geology.profile.usgsSource}</div>
           </div>
         ) : null}
       </div>
@@ -103,22 +112,44 @@ export default function NEOScenarioSummary({ neo, impactResults, location }: NEO
           </div>
           <div className="metric rounded-lg p-3">
             <div className="label text-xs">Modeled devastation radius*</div>
-            <div className="text-sm font-semibold">{adjustedDevastation ? formatKm(adjustedDevastation) : '—'}</div>
-            {geology ? (
-              <div className="text-[11px] label">USGS geology modifier ×{geology.devastationMultiplier.toFixed(2)}</div>
+            <div className="text-sm font-semibold">{devastationValue ? formatKm(devastationValue) : '—'}</div>
+            {geology && adjustedResults ? (
+              <div className="text-[11px] label">
+                Terrain multiplier ×{adjustedResults.multipliers.devastation.toFixed(2)}
+              </div>
+            ) : geology ? (
+              <div className="text-[11px] label">Geology profile {geology.profile.label}</div>
             ) : (
               <div className="text-[11px] label">Baseline heuristic</div>
             )}
           </div>
           <div className="metric rounded-lg p-3 sm:col-span-2">
             <div className="label text-xs">Crater diameter*</div>
-            <div className="text-sm font-semibold">{adjustedCrater ? formatKm(adjustedCrater) : '—'}</div>
-            {geology ? (
-              <div className="text-[11px] label">Scaled by surface response ×{geology.craterMultiplier.toFixed(2)}</div>
+            <div className="text-sm font-semibold">{craterValue ? formatKm(craterValue) : '—'}</div>
+            {geology && adjustedResults ? (
+              <div className="text-[11px] label">
+                Surface response ×{adjustedResults.multipliers.crater.toFixed(2)}
+              </div>
+            ) : geology ? (
+              <div className="text-[11px] label">Geology profile {geology.profile.label}</div>
             ) : (
               <div className="text-[11px] label">Baseline heuristic</div>
             )}
           </div>
+          {hazardLabel ? (
+            <div className="metric rounded-lg p-3 sm:col-span-2">
+              <div className="label text-xs">Hazard channel modifiers</div>
+              <div className="text-sm font-semibold">
+                {hazardLabel}
+                {tsunamiLabel}
+              </div>
+              {!geology?.appliedTerrain ? (
+                <div className="text-[11px] label">
+                  Align the selected surface type with the inferred terrain to activate regional overrides.
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       ) : (
         <p className="text-xs label">Adjust parameters to compute energy release and crater size.</p>
