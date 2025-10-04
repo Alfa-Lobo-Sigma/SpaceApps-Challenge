@@ -5,21 +5,29 @@ import NEOBrowser from './components/NEOBrowser'
 import ImpactParameters from './components/ImpactParameters'
 import OrbitVisualization from './components/OrbitVisualization'
 import ImpactMap from './components/ImpactMap'
-import type { OrbitalData, ImpactParams, ImpactResults } from './types'
+import NEOScenarioSummary from './components/NEOScenarioSummary'
+import PreparednessModal from './components/PreparednessModal'
+import type { OrbitalData, ImpactParams, ImpactResults, NEO } from './types'
 
 function App() {
   const [orbitalData, setOrbitalData] = useState<OrbitalData | null>(null)
+  const [selectedNEO, setSelectedNEO] = useState<NEO | null>(null)
   const [impactParams, setImpactParams] = useState<ImpactParams>({
-    diameter: 120,
+    diameter: 2000,
     velocity: 17,
     density: 3000,
     target: 'continental'
   })
   const [impactResults, setImpactResults] = useState<ImpactResults | null>(null)
-  const [impactLocation, setImpactLocation] = useState<[number, number]>([29.07, -105.56])
+  const [impactLocation, setImpactLocation] = useState<[number, number]>([28.632995, -106.0691])
+  const [isPreparednessOpen, setPreparednessOpen] = useState(false)
 
-  const handleNEOSelect = (_neo: unknown, orbital: OrbitalData) => {
+  const handleNEOSelect = (neo: NEO, orbital: OrbitalData) => {
+    setSelectedNEO(neo)
     setOrbitalData(orbital)
+    if (neo.impact_scenario?.location) {
+      setImpactLocation(neo.impact_scenario.location)
+    }
   }
 
   const handleParamsUpdate = (params: Partial<ImpactParams>) => {
@@ -36,10 +44,11 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
+      <Header onPreparednessClick={() => setPreparednessOpen(true)} />
       <main className="max-w-7xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1">
         <section className="panel rounded-2xl p-4 space-y-4">
           <NEOBrowser onNEOSelect={handleNEOSelect} onParamsUpdate={handleParamsUpdate} />
+          <NEOScenarioSummary neo={selectedNEO} impactResults={impactResults} location={impactLocation} />
           <ImpactParameters
             params={impactParams}
             onParamsChange={setImpactParams}
@@ -57,6 +66,7 @@ function App() {
         </section>
       </main>
       <Footer />
+      <PreparednessModal open={isPreparednessOpen} onClose={() => setPreparednessOpen(false)} />
     </div>
   )
 }

@@ -1,24 +1,29 @@
-import { useLanguage } from '../contexts/LanguageContext'
-import ThemeSwitcher from './ThemeSwitcher'
-import LanguageSwitcher from './LanguageSwitcher'
+import type { MouseEventHandler } from 'react'
 
-export default function Header() {
-  const { t } = useLanguage()
+type HeaderProps = {
+  onPreparednessClick: MouseEventHandler<HTMLButtonElement>
+}
 
+export default function Header({ onPreparednessClick }: HeaderProps) {
   return (
-    <header className="px-4 sm:px-6 py-4 border-b border-white/10 sticky top-0 z-50 panel">
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-        <img src="/logo.png" alt="Team Logo" className="h-10 sm:h-12 w-auto" />
-        <div className="flex-1 min-w-0">
-          <div className="text-lg sm:text-xl font-semibold">{t('header.title')}</div>
-          <div className="text-xs sm:text-sm label truncate">
-            {t('header.subtitle')}
+    <header className="px-6 py-4 border-b border-white/10 sticky top-0 z-50 panel">
+      <div className="max-w-7xl mx-auto flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-4">
+          <img src="/logo.png" alt="Team Logo" className="h-12 w-auto" />
+          <div>
+            <div className="text-xl font-semibold">Impactor‑2025</div>
+            <div className="text-xs sm:text-sm label">
+              NASA NeoWs + Leaflet + Three.js • real data, simplified physics
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 sm:gap-3 self-end sm:self-auto">
-          <LanguageSwitcher />
-          <ThemeSwitcher />
-        </div>
+        <button
+          type="button"
+          onClick={onPreparednessClick}
+          className="self-start rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:border-white/40 hover:bg-white/20"
+        >
+          Guía ante impacto
+        </button>
       </div>
     </header>
   )
