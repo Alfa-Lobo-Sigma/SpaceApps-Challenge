@@ -4,10 +4,9 @@ import NEOBrowser from './components/NEOBrowser'
 import ImpactParameters from './components/ImpactParameters'
 import OrbitVisualization from './components/OrbitVisualization'
 import ImpactMap from './components/ImpactMap'
-import type { NEO, OrbitalData, ImpactParams, ImpactResults } from './types'
+import type { OrbitalData, ImpactParams, ImpactResults } from './types'
 
 function App() {
-  const [selectedNEO, setSelectedNEO] = useState<NEO | null>(null)
   const [orbitalData, setOrbitalData] = useState<OrbitalData | null>(null)
   const [impactParams, setImpactParams] = useState<ImpactParams>({
     diameter: 120,
@@ -18,9 +17,12 @@ function App() {
   const [impactResults, setImpactResults] = useState<ImpactResults | null>(null)
   const [impactLocation, setImpactLocation] = useState<[number, number]>([29.07, -105.56])
 
-  const handleNEOSelect = (neo: NEO, orbital: OrbitalData) => {
-    setSelectedNEO(neo)
+  const handleNEOSelect = (_neo: unknown, orbital: OrbitalData) => {
     setOrbitalData(orbital)
+  }
+
+  const handleParamsUpdate = (params: Partial<ImpactParams>) => {
+    setImpactParams(prev => ({ ...prev, ...params }))
   }
 
   const handleImpactCalculation = (results: ImpactResults) => {
@@ -36,7 +38,7 @@ function App() {
       <Header />
       <main className="max-w-7xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
         <section className="panel rounded-2xl p-4 space-y-4">
-          <NEOBrowser onNEOSelect={handleNEOSelect} onParamsUpdate={setImpactParams} />
+          <NEOBrowser onNEOSelect={handleNEOSelect} onParamsUpdate={handleParamsUpdate} />
           <ImpactParameters
             params={impactParams}
             onParamsChange={setImpactParams}
