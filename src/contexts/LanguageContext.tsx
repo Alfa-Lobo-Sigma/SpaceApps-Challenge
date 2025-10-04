@@ -78,6 +78,47 @@ const translations: Record<Language, any> = {
       energy: 'Impact Energy',
       devastation: 'Devastation Radius',
       crater: 'Crater Diameter',
+      population: {
+        title: 'Population Impact',
+        exposed: 'Population exposed',
+        displaced: 'Potentially displaced',
+        fatalities: 'Projected fatalities'
+      },
+      economic: {
+        title: 'Economic Damage',
+        directDamage: 'Direct damage',
+        infrastructureLoss: 'Infrastructure loss',
+        recovery: 'Recovery timeline'
+      },
+      environmental: {
+        title: 'Environmental Consequences',
+        severity: 'Overall severity',
+        air: 'Air quality impact',
+        water: 'Water impact',
+        category: {
+          label: 'Impact category',
+          minimal: 'Minimal',
+          moderate: 'Moderate',
+          severe: 'Severe',
+          extreme: 'Extreme'
+        }
+      },
+      multiImpact: {
+        title: 'Multi-impact Scenario',
+        classification: 'Cascade classification',
+        risk: 'Cascading risk score',
+        response: 'Suggested coordination level',
+        level: {
+          localized: 'Localized',
+          regional: 'Regional',
+          global: 'Global'
+        },
+        responseLevel: {
+          monitor: 'Monitor & inform',
+          coordinate: 'Coordinate regional response',
+          mobilize: 'Mobilize international resources'
+        }
+      },
       validation: {
         required: 'Please enter a value.',
         number: 'Enter a valid number.',
@@ -130,6 +171,47 @@ const translations: Record<Language, any> = {
       energy: 'Energía de Impacto',
       devastation: 'Radio de Devastación',
       crater: 'Diámetro del Cráter',
+      population: {
+        title: 'Impacto en la Población',
+        exposed: 'Población expuesta',
+        displaced: 'Potencialmente desplazados',
+        fatalities: 'Fatalidades proyectadas'
+      },
+      economic: {
+        title: 'Daño Económico',
+        directDamage: 'Daño directo',
+        infrastructureLoss: 'Pérdida en infraestructura',
+        recovery: 'Cronograma de recuperación'
+      },
+      environmental: {
+        title: 'Consecuencias Ambientales',
+        severity: 'Severidad total',
+        air: 'Impacto en la calidad del aire',
+        water: 'Impacto hídrico',
+        category: {
+          label: 'Categoría de impacto',
+          minimal: 'Mínima',
+          moderate: 'Moderada',
+          severe: 'Severa',
+          extreme: 'Extrema'
+        }
+      },
+      multiImpact: {
+        title: 'Escenario Multimpacto',
+        classification: 'Clasificación de cascada',
+        risk: 'Puntaje de riesgo en cascada',
+        response: 'Nivel sugerido de coordinación',
+        level: {
+          localized: 'Localizado',
+          regional: 'Regional',
+          global: 'Global'
+        },
+        responseLevel: {
+          monitor: 'Monitorear e informar',
+          coordinate: 'Coordinar respuesta regional',
+          mobilize: 'Movilizar recursos internacionales'
+        }
+      },
       validation: {
         required: 'Ingresa un valor.',
         number: 'Ingresa un número válido.',
