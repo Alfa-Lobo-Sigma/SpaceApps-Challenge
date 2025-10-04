@@ -7,11 +7,29 @@ const YEAR_S = 365.25 * 86400 // seconds in a Julian year
 export function parseOrbitalData(orbitalDataRaw: any): OrbitalData | null {
   if (!orbitalDataRaw) return null
 
-  const a = Number(orbitalDataRaw.semi_major_axis || 1)
-  const e = Number(orbitalDataRaw.eccentricity || 0.1)
+  // Validate that required fields exist
+  if (!orbitalDataRaw.semi_major_axis || !orbitalDataRaw.eccentricity) {
+    console.warn('Orbital data missing required fields (semi_major_axis or eccentricity)')
+    return null
+  }
+
+  const a = Number(orbitalDataRaw.semi_major_axis)
+  const e = Number(orbitalDataRaw.eccentricity)
   const inc = THREE.MathUtils.degToRad(Number(orbitalDataRaw.inclination || 0))
   const omega = THREE.MathUtils.degToRad(Number(orbitalDataRaw.ascending_node_longitude || 0))
   const w = THREE.MathUtils.degToRad(Number(orbitalDataRaw.perihelion_argument || 0))
+
+  // Validate parsed values are valid numbers
+  if (isNaN(a) || isNaN(e) || isNaN(inc) || isNaN(omega) || isNaN(w)) {
+    console.warn('Orbital data contains invalid numeric values')
+    return null
+  }
+
+  // Validate orbital parameters are physically reasonable
+  if (a <= 0 || e < 0 || e >= 1) {
+    console.warn(`Invalid orbital parameters: a=${a}, e=${e}`)
+    return null
+  }
 
   return { a, e, i: inc, omega, w }
 }

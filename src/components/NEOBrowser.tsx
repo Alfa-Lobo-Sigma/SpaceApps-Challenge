@@ -61,21 +61,29 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate }: NEOBrowserPr
   }
 
   const handleSelection = (neo: NEO) => {
+    // Update diameter if available and valid
     const diameter = neo.estimated_diameter?.meters
-    if (diameter) {
+    if (diameter && diameter.estimated_diameter_min >= 0 && diameter.estimated_diameter_max >= 0) {
       const avgDiameter = Math.round(
         (diameter.estimated_diameter_min + diameter.estimated_diameter_max) / 2
       )
-      onParamsUpdate({ diameter: avgDiameter })
+      if (!isNaN(avgDiameter) && avgDiameter > 0) {
+        onParamsUpdate({ diameter: avgDiameter })
+      }
     }
 
+    // Update velocity if available and valid
     const velocity = neo.close_approach_data?.[0]?.relative_velocity?.kilometers_per_second
     if (velocity) {
-      onParamsUpdate({ velocity: Number(velocity) })
+      const velocityNum = Number(velocity)
+      if (!isNaN(velocityNum) && velocityNum > 0) {
+        onParamsUpdate({ velocity: velocityNum })
+      }
     }
 
     applyScenarioParams(neo)
 
+    // Parse orbital data with fallback to default
     const orbitalData = parseOrbitalData(neo.orbital_data) || getDefaultOrbit()
     onNEOSelect(neo, orbitalData)
   }
