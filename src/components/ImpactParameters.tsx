@@ -1,7 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { ImpactParams, ImpactResults } from '../types'
 import { calculateImpactResults, formatMass, formatEnergy, formatKm, formatMT } from '../utils/physics'
 import { useLanguage } from '../contexts/LanguageContext'
+import { IMPACT_PARAM_LIMITS } from '../utils/validation'
+
+type NumericField = 'diameter' | 'velocity' | 'density'
 
 interface ImpactParametersProps {
   params: ImpactParams
@@ -15,6 +18,56 @@ export default function ImpactParameters({
   onCalculate
 }: ImpactParametersProps) {
   const { t } = useLanguage()
+
+  const [inputValues, setInputValues] = useState<Record<NumericField, string>>({
+    diameter: params.diameter.toString(),
+    velocity: params.velocity.toString(),
+    density: params.density.toString()
+  })
+  const [errors, setErrors] = useState<Record<NumericField, string | undefined>>({
+    diameter: undefined,
+    velocity: undefined,
+    density: undefined
+  })
+
+  useEffect(() => {
+    setInputValues({
+      diameter: params.diameter.toString(),
+      velocity: params.velocity.toString(),
+      density: params.density.toString()
+    })
+    setErrors({ diameter: undefined, velocity: undefined, density: undefined })
+  }, [params.diameter, params.velocity, params.density])
+
+  const handleNumericChange = (field: NumericField) => (value: string) => {
+    setInputValues(prev => ({ ...prev, [field]: value }))
+
+    if (value.trim() === '') {
+      setErrors(prev => ({ ...prev, [field]: t('impactParams.validation.required') }))
+      return
+    }
+
+    const numeric = Number(value)
+    if (!Number.isFinite(numeric)) {
+      setErrors(prev => ({ ...prev, [field]: t('impactParams.validation.number') }))
+      return
+    }
+
+    const { min, max } = IMPACT_PARAM_LIMITS[field]
+    if (numeric < min || numeric > max) {
+      const rangeKey =
+        field === 'diameter'
+          ? 'diameterRange'
+          : field === 'velocity'
+            ? 'velocityRange'
+            : 'densityRange'
+      setErrors(prev => ({ ...prev, [field]: t(`impactParams.validation.${rangeKey}`) }))
+      return
+    }
+
+    setErrors(prev => ({ ...prev, [field]: undefined }))
+    onParamsChange({ ...params, [field]: numeric })
+  }
   const handleRecalculate = () => {
     const results = calculateImpactResults(params)
     onCalculate(results)
@@ -35,29 +88,73 @@ export default function ImpactParameters({
           <label className="label block mb-1 text-xs">{t('impactParams.diameter')}</label>
           <input
             type="number"
-            value={params.diameter}
-            onChange={(e) => onParamsChange({ ...params, diameter: Number(e.target.value) })}
-            className="w-full rounded-lg p-2 bg-black/30 border border-white/10 focus:outline-none focus:border-white/30 transition-colors text-sm"
+            inputMode="decimal"
+            min={IMPACT_PARAM_LIMITS.diameter.min}
+            max={IMPACT_PARAM_LIMITS.diameter.max}
+            step={IMPACT_PARAM_LIMITS.diameter.step}
+            value={inputValues.diameter}
+            onChange={(e) => handleNumericChange('diameter')(e.target.value)}
+            aria-invalid={Boolean(errors.diameter)}
+            aria-describedby="diameter-error"
+            className={`w-full rounded-lg p-2 bg-black/30 border focus:outline-none transition-colors text-sm ${
+              errors.diameter
+                ? 'border-red-500/60 focus:border-red-400'
+                : 'border-white/10 focus:border-white/30'
+            }`}
           />
+          {errors.diameter && (
+            <p id="diameter-error" className="mt-1 text-xs text-red-400">
+              {errors.diameter}
+            </p>
+          )}
         </div>
         <div>
           <label className="label block mb-1 text-xs">{t('impactParams.velocity')}</label>
           <input
             type="number"
-            step="0.1"
-            value={params.velocity}
-            onChange={(e) => onParamsChange({ ...params, velocity: Number(e.target.value) })}
-            className="w-full rounded-lg p-2 bg-black/30 border border-white/10 focus:outline-none focus:border-white/30 transition-colors text-sm"
+            inputMode="decimal"
+            min={IMPACT_PARAM_LIMITS.velocity.min}
+            max={IMPACT_PARAM_LIMITS.velocity.max}
+            step={IMPACT_PARAM_LIMITS.velocity.step}
+            value={inputValues.velocity}
+            onChange={(e) => handleNumericChange('velocity')(e.target.value)}
+            aria-invalid={Boolean(errors.velocity)}
+            aria-describedby="velocity-error"
+            className={`w-full rounded-lg p-2 bg-black/30 border focus:outline-none transition-colors text-sm ${
+              errors.velocity
+                ? 'border-red-500/60 focus:border-red-400'
+                : 'border-white/10 focus:border-white/30'
+            }`}
           />
+          {errors.velocity && (
+            <p id="velocity-error" className="mt-1 text-xs text-red-400">
+              {errors.velocity}
+            </p>
+          )}
         </div>
         <div>
           <label className="label block mb-1 text-xs">{t('impactParams.density')}</label>
           <input
             type="number"
-            value={params.density}
-            onChange={(e) => onParamsChange({ ...params, density: Number(e.target.value) })}
-            className="w-full rounded-lg p-2 bg-black/30 border border-white/10 focus:outline-none focus:border-white/30 transition-colors text-sm"
+            inputMode="decimal"
+            min={IMPACT_PARAM_LIMITS.density.min}
+            max={IMPACT_PARAM_LIMITS.density.max}
+            step={IMPACT_PARAM_LIMITS.density.step}
+            value={inputValues.density}
+            onChange={(e) => handleNumericChange('density')(e.target.value)}
+            aria-invalid={Boolean(errors.density)}
+            aria-describedby="density-error"
+            className={`w-full rounded-lg p-2 bg-black/30 border focus:outline-none transition-colors text-sm ${
+              errors.density
+                ? 'border-red-500/60 focus:border-red-400'
+                : 'border-white/10 focus:border-white/30'
+            }`}
           />
+          {errors.density && (
+            <p id="density-error" className="mt-1 text-xs text-red-400">
+              {errors.density}
+            </p>
+          )}
         </div>
         <div>
           <label className="label block mb-1 text-xs">{t('impactParams.target')}</label>

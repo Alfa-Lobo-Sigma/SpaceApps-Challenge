@@ -8,16 +8,19 @@ import ImpactMap from './components/ImpactMap'
 import NEOScenarioSummary from './components/NEOScenarioSummary'
 import PreparednessModal from './components/PreparednessModal'
 import type { OrbitalData, ImpactParams, ImpactResults, NEO } from './types'
+import { mergeImpactParams, normalizeImpactParams } from './utils/validation'
 
 function App() {
   const [orbitalData, setOrbitalData] = useState<OrbitalData | null>(null)
   const [selectedNEO, setSelectedNEO] = useState<NEO | null>(null)
-  const [impactParams, setImpactParams] = useState<ImpactParams>({
-    diameter: 2000,
-    velocity: 17,
-    density: 3000,
-    target: 'continental'
-  })
+  const [impactParams, setImpactParams] = useState<ImpactParams>(() =>
+    normalizeImpactParams({
+      diameter: 2000,
+      velocity: 17,
+      density: 3000,
+      target: 'continental'
+    })
+  )
   const [impactResults, setImpactResults] = useState<ImpactResults | null>(null)
   const [impactLocation, setImpactLocation] = useState<[number, number]>([28.632995, -106.0691])
   const [isPreparednessOpen, setPreparednessOpen] = useState(false)
@@ -31,7 +34,7 @@ function App() {
   }
 
   const handleParamsUpdate = (params: Partial<ImpactParams>) => {
-    setImpactParams(prev => ({ ...prev, ...params }))
+    setImpactParams(prev => mergeImpactParams(prev, params))
   }
 
   const handleImpactCalculation = (results: ImpactResults) => {
@@ -51,7 +54,7 @@ function App() {
           <NEOScenarioSummary neo={selectedNEO} impactResults={impactResults} location={impactLocation} />
           <ImpactParameters
             params={impactParams}
-            onParamsChange={setImpactParams}
+            onParamsChange={(next) => setImpactParams(normalizeImpactParams(next))}
             onCalculate={handleImpactCalculation}
           />
         </section>

@@ -77,7 +77,14 @@ const translations: Record<Language, any> = {
       mass: 'Mass',
       energy: 'Impact Energy',
       devastation: 'Devastation Radius',
-      crater: 'Crater Diameter'
+      crater: 'Crater Diameter',
+      validation: {
+        required: 'Please enter a value.',
+        number: 'Enter a valid number.',
+        diameterRange: 'Enter a diameter between 1 and 100,000 meters.',
+        velocityRange: 'Enter a velocity between 0.1 and 72 km/s.',
+        densityRange: 'Enter a density between 200 and 15,000 kg/m³.'
+      }
     },
     orbitViz: {
       title: '3D Orbit (animated)',
@@ -122,7 +129,14 @@ const translations: Record<Language, any> = {
       mass: 'Masa',
       energy: 'Energía de Impacto',
       devastation: 'Radio de Devastación',
-      crater: 'Diámetro del Cráter'
+      crater: 'Diámetro del Cráter',
+      validation: {
+        required: 'Ingresa un valor.',
+        number: 'Ingresa un número válido.',
+        diameterRange: 'Ingresa un diámetro entre 1 y 100,000 metros.',
+        velocityRange: 'Ingresa una velocidad entre 0.1 y 72 km/s.',
+        densityRange: 'Ingresa una densidad entre 200 y 15,000 kg/m³.'
+      }
     },
     orbitViz: {
       title: 'Órbita 3D (animada)',
