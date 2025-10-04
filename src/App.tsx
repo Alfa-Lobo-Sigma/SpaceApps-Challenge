@@ -18,6 +18,7 @@ import { getDefaultOrbit, parseOrbitalData } from './utils/orbital'
 import OnboardingTutorial from './components/OnboardingTutorial'
 import ExportSharePanel from './components/ExportSharePanel'
 import { parseShareState, currentShareUrl } from './utils/sharing'
+import ErrorBoundary from './components/ErrorBoundary'
 
 function App() {
   const [initialShare] = useState(() => {
@@ -144,8 +145,14 @@ function App() {
     if (typeof window === 'undefined') {
       return
     }
-    const hasCompleted = window.localStorage.getItem('impactor.tutorialComplete') === 'true'
-    if (!hasCompleted) {
+    try {
+      const hasCompleted = window.localStorage.getItem('impactor.tutorialComplete') === 'true'
+      if (!hasCompleted) {
+        setTutorialOpen(true)
+      }
+    } catch (error) {
+      console.warn('Failed to read tutorial completion status from localStorage:', error)
+      // Default to showing tutorial if we can't read the state
       setTutorialOpen(true)
     }
   }, [])
@@ -153,7 +160,11 @@ function App() {
   const dismissTutorial = (_completed: boolean) => {
     setTutorialOpen(false)
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem('impactor.tutorialComplete', 'true')
+      try {
+        window.localStorage.setItem('impactor.tutorialComplete', 'true')
+      } catch (error) {
+        console.warn('Failed to save tutorial completion status to localStorage:', error)
+      }
     }
   }
 
@@ -192,53 +203,71 @@ function App() {
       />
       <main className="max-w-7xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1">
         <section className="panel rounded-2xl p-4 space-y-4">
-          <NEOBrowser
-            onNEOSelect={handleNEOSelect}
-            onParamsUpdate={handleParamsUpdate}
-            initialNEOId={initialShare?.neoId ?? null}
-          />
-          <ImpactScenarioLibrary
-            scenarios={IMPACT_SCENARIOS}
-            onSelectScenario={handleScenarioLoad}
-          />
-          <NEOScenarioSummary
-            neo={selectedNEO}
-            impactResults={impactResults}
-            adjustedResults={adjustedImpactResults}
-            geology={geologyAssessment}
-            location={impactLocation}
-          />
-          <ImpactParameters
-            params={impactParams}
-            onParamsChange={(next) => setImpactParams(normalizeImpactParams(next))}
-            onCalculate={handleImpactCalculation}
-          />
-          <GeologyInsights assessment={geologyAssessment} adjustedResults={adjustedImpactResults} />
-          <ExportSharePanel
-            neo={selectedNEO}
-            impactParams={impactParams}
-            impactResults={impactResults}
-            adjustedResults={adjustedImpactResults}
-            geology={geologyAssessment}
-            location={impactLocation}
-            orbitalData={orbitalData}
-            orbitHandle={orbitRef.current}
-            mapHandle={mapRef.current}
-          />
+          <ErrorBoundary componentName="NEO Browser">
+            <NEOBrowser
+              onNEOSelect={handleNEOSelect}
+              onParamsUpdate={handleParamsUpdate}
+              initialNEOId={initialShare?.neoId ?? null}
+            />
+          </ErrorBoundary>
+          <ErrorBoundary componentName="Impact Scenario Library">
+            <ImpactScenarioLibrary
+              scenarios={IMPACT_SCENARIOS}
+              onSelectScenario={handleScenarioLoad}
+            />
+          </ErrorBoundary>
+          <ErrorBoundary componentName="NEO Scenario Summary">
+            <NEOScenarioSummary
+              neo={selectedNEO}
+              impactResults={impactResults}
+              adjustedResults={adjustedImpactResults}
+              geology={geologyAssessment}
+              location={impactLocation}
+            />
+          </ErrorBoundary>
+          <ErrorBoundary componentName="Impact Parameters">
+            <ImpactParameters
+              params={impactParams}
+              onParamsChange={(next) => setImpactParams(normalizeImpactParams(next))}
+              onCalculate={handleImpactCalculation}
+            />
+          </ErrorBoundary>
+          <ErrorBoundary componentName="Geology Insights">
+            <GeologyInsights assessment={geologyAssessment} adjustedResults={adjustedImpactResults} />
+          </ErrorBoundary>
+          <ErrorBoundary componentName="Export & Share Panel">
+            <ExportSharePanel
+              neo={selectedNEO}
+              impactParams={impactParams}
+              impactResults={impactResults}
+              adjustedResults={adjustedImpactResults}
+              geology={geologyAssessment}
+              location={impactLocation}
+              orbitalData={orbitalData}
+              orbitHandle={orbitRef.current}
+              mapHandle={mapRef.current}
+            />
+          </ErrorBoundary>
         </section>
 
         <section className="panel rounded-2xl p-4 space-y-3 lg:col-span-2">
-          <OrbitVisualization ref={orbitRef} orbitalData={orbitalData} />
-          <ImpactMap
-            ref={mapRef}
-            location={impactLocation}
-            results={impactResults}
-            adjustedResults={adjustedImpactResults}
-            onLocationSelect={handleLocationSelect}
-          />
+          <ErrorBoundary componentName="Orbit Visualization">
+            <OrbitVisualization ref={orbitRef} orbitalData={orbitalData} />
+          </ErrorBoundary>
+          <ErrorBoundary componentName="Impact Map">
+            <ImpactMap
+              ref={mapRef}
+              location={impactLocation}
+              results={impactResults}
+              adjustedResults={adjustedImpactResults}
+              onLocationSelect={handleLocationSelect}
+            />
+          </ErrorBoundary>
         </section>
 
-        <MitigationStrategies neo={selectedNEO} className="lg:col-span-3" />
+        <ErrorBoundary componentName="Mitigation Strategies">
+          <MitigationStrategies neo={selectedNEO} className="lg:col-span-3" />
+        </ErrorBoundary>
       </main>
       <Footer />
       <PreparednessModal open={isPreparednessOpen} onClose={() => setPreparednessOpen(false)} />

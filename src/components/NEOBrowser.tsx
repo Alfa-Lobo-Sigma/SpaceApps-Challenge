@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import type { NEO, ImpactParams, OrbitalData } from '../types'
 import { parseOrbitalData, getDefaultOrbit } from '../utils/orbital'
 import { IMPACTOR_2025, FALLBACK_NEOS, FALLBACK_NEO_MAP } from '../data/scenarioNeos'
+import { fetchWithRateLimit } from '../utils/rateLimit'
 
 const API_KEY = 'QVQTFgjfy9QfI1tI237pylpTfp4K53a4lrtYquHL'
 
@@ -29,7 +30,7 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate, initialNEOId }
     setMessage(null)
     try {
       const url = `https://api.nasa.gov/neo/rest/v1/neo/browse?page=${page}&size=20&api_key=${API_KEY}`
-      const response = await fetch(url)
+      const response = await fetchWithRateLimit(url)
       if (!response.ok) {
         throw new Error(`NeoWs responded with ${response.status}`)
       }
@@ -42,7 +43,8 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate, initialNEOId }
     } catch (error) {
       console.error('Error fetching NEOs:', error)
       if (isMounted.current) {
-        setMessage('NeoWs request failed; using embedded training dataset.')
+        const message = error instanceof Error ? error.message : 'NeoWs request failed'
+        setMessage(`${message}; using embedded training dataset.`)
         setNeos(FALLBACK_NEOS)
       }
       return FALLBACK_NEOS
@@ -95,7 +97,7 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate, initialNEOId }
 
     try {
       const url = `https://api.nasa.gov/neo/rest/v1/neo/${id}?api_key=${API_KEY}`
-      const response = await fetch(url)
+      const response = await fetchWithRateLimit(url)
       if (!response.ok) {
         throw new Error(`NeoWs detail responded with ${response.status}`)
       }
@@ -108,7 +110,8 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate, initialNEOId }
       if (!isMounted.current) {
         return
       }
-      setMessage('Detail request failed; showing cached orbital solution.')
+      const message = error instanceof Error ? error.message : 'Detail request failed'
+      setMessage(`${message}; showing cached orbital solution.`)
       const fallback = FALLBACK_NEO_MAP.get(id)
       if (fallback) {
         handleSelection(fallback)

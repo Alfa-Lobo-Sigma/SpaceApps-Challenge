@@ -278,6 +278,11 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
     return (
       <div className="space-y-3">
         <h2 className="text-base sm:text-lg font-semibold">{t('orbitViz.title')}</h2>
+        {!orbitalData && (
+          <div className="bg-white/5 border border-white/10 rounded-lg p-4 text-center">
+            <p className="text-sm text-white/60">{t('orbitViz.selectNEO') || 'Select a NEO to visualize its orbit'}</p>
+          </div>
+        )}
         <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-3 items-start sm:items-center text-xs sm:text-sm mb-2">
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <span className="label whitespace-nowrap">{t('orbitViz.timeScale')}</span>

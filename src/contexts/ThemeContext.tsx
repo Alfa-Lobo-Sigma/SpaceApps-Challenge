@@ -11,12 +11,25 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('theme')
-    return (saved as Theme) || 'dark'
+    try {
+      if (typeof window !== 'undefined') {
+        const saved = window.localStorage.getItem('theme')
+        return (saved as Theme) || 'dark'
+      }
+    } catch (error) {
+      console.warn('Failed to read theme from localStorage:', error)
+    }
+    return 'dark'
   })
 
   useEffect(() => {
-    localStorage.setItem('theme', theme)
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('theme', theme)
+      }
+    } catch (error) {
+      console.warn('Failed to save theme to localStorage:', error)
+    }
     document.documentElement.setAttribute('data-theme', theme)
   }, [theme])
 

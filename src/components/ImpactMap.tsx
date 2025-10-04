@@ -190,6 +190,11 @@ const ImpactMap = forwardRef<ImpactMapHandle, ImpactMapProps>(
     return (
       <div className="space-y-3">
         <h2 className="text-base sm:text-lg font-semibold pt-2">{t('impactMap.title')}</h2>
+        {!results && (
+          <div className="bg-white/5 border border-white/10 rounded-lg p-4 text-center mb-3">
+            <p className="text-sm text-white/60">{t('impactMap.calculate') || 'Calculate impact to visualize devastation radius'}</p>
+          </div>
+        )}
         <div ref={containerRef} className="w-full h-64 sm:h-80 rounded-xl border border-white/10" />
         <div className="text-[10px] sm:text-xs label">
           {t('impactMap.description')}
