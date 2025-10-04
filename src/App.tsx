@@ -6,6 +6,7 @@ import ImpactParameters from './components/ImpactParameters'
 import OrbitVisualization from './components/OrbitVisualization'
 import ImpactMap from './components/ImpactMap'
 import NEOScenarioSummary from './components/NEOScenarioSummary'
+import PreparednessModal from './components/PreparednessModal'
 import type { OrbitalData, ImpactParams, ImpactResults, NEO } from './types'
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
   })
   const [impactResults, setImpactResults] = useState<ImpactResults | null>(null)
   const [impactLocation, setImpactLocation] = useState<[number, number]>([28.632995, -106.0691])
+  const [isPreparednessOpen, setPreparednessOpen] = useState(false)
 
   const handleNEOSelect = (neo: NEO, orbital: OrbitalData) => {
     setSelectedNEO(neo)
@@ -42,7 +44,7 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
+      <Header onPreparednessClick={() => setPreparednessOpen(true)} />
       <main className="max-w-7xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1">
         <section className="panel rounded-2xl p-4 space-y-4">
           <NEOBrowser onNEOSelect={handleNEOSelect} onParamsUpdate={handleParamsUpdate} />
@@ -64,6 +66,7 @@ function App() {
         </section>
       </main>
       <Footer />
+      <PreparednessModal open={isPreparednessOpen} onClose={() => setPreparednessOpen(false)} />
     </div>
   )
 }
