@@ -60,6 +60,11 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate }: NEOBrowserPr
     }
   }
 
+  const resolveOrbitalData = (neo: NEO): OrbitalData => {
+    const rawOrbitalData = neo.orbital_data ?? FALLBACK_NEO_MAP.get(neo.id)?.orbital_data
+    return parseOrbitalData(rawOrbitalData) ?? getDefaultOrbit()
+  }
+
   const handleSelection = (neo: NEO) => {
     // Update diameter if available and valid
     const diameter = neo.estimated_diameter?.meters
