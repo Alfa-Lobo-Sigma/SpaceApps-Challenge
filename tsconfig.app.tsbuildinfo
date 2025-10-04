@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/header.tsx","./src/components/impactmap.tsx","./src/components/impactparameters.tsx","./src/components/neobrowser.tsx","./src/components/orbitvisualization.tsx","./src/types/index.ts","./src/utils/orbital.ts","./src/utils/physics.ts"],"version":"5.6.3"}
