@@ -1,6 +1,7 @@
 import type { NEO, ImpactResults } from '../types'
 import { formatEnergy, formatMT, formatKm } from '../utils/physics'
 import type { GeologyAdjustedResults, GeologyAssessment } from '../utils/geology'
+import PhysicsTooltip from './PhysicsTooltip'
 
 interface NEOScenarioSummaryProps {
   neo: NEO | null
@@ -106,13 +107,19 @@ export default function NEOScenarioSummary({
       {impactResults ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="metric rounded-lg p-3">
-            <div className="label text-xs">Energy release</div>
-            <div className="text-sm font-semibold">{formatEnergy(impactResults.energy)}</div>
-            <div className="text-[11px] label">{formatMT(impactResults.energyMT)}</div>
+          <div className="label flex items-center gap-1 text-xs">
+            Energy release
+            <PhysicsTooltip term="energy" />
           </div>
-          <div className="metric rounded-lg p-3">
-            <div className="label text-xs">Modeled devastation radius*</div>
-            <div className="text-sm font-semibold">{devastationValue ? formatKm(devastationValue) : '—'}</div>
+          <div className="text-sm font-semibold">{formatEnergy(impactResults.energy)}</div>
+          <div className="text-[11px] label">{formatMT(impactResults.energyMT)}</div>
+        </div>
+        <div className="metric rounded-lg p-3">
+          <div className="label flex items-center gap-1 text-xs">
+            Modeled devastation radius*
+            <PhysicsTooltip term="devastationRadius" />
+          </div>
+          <div className="text-sm font-semibold">{devastationValue ? formatKm(devastationValue) : '—'}</div>
             {geology && adjustedResults ? (
               <div className="text-[11px] label">
                 Terrain multiplier ×{adjustedResults.multipliers.devastation.toFixed(2)}
@@ -123,9 +130,12 @@ export default function NEOScenarioSummary({
               <div className="text-[11px] label">Baseline heuristic</div>
             )}
           </div>
-          <div className="metric rounded-lg p-3 sm:col-span-2">
-            <div className="label text-xs">Crater diameter*</div>
-            <div className="text-sm font-semibold">{craterValue ? formatKm(craterValue) : '—'}</div>
+        <div className="metric rounded-lg p-3 sm:col-span-2">
+          <div className="label flex items-center gap-1 text-xs">
+            Crater diameter*
+            <PhysicsTooltip term="craterDiameter" />
+          </div>
+          <div className="text-sm font-semibold">{craterValue ? formatKm(craterValue) : '—'}</div>
             {geology && adjustedResults ? (
               <div className="text-[11px] label">
                 Surface response ×{adjustedResults.multipliers.crater.toFixed(2)}
