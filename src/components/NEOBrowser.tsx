@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import type { NEO, ImpactParams } from '../types'
-import { parseOrbitalData } from '../utils/orbital'
+import type { NEO, ImpactParams, OrbitalData } from '../types'
+import { parseOrbitalData, getDefaultOrbit } from '../utils/orbital'
+import { IMPACTOR_2025, FALLBACK_NEOS, FALLBACK_NEO_MAP } from '../data/scenarioNeos'
 
 const API_KEY = 'QVQTFgjfy9QfI1tI237pylpTfp4K53a4lrtYquHL'
 
 interface NEOBrowserProps {
-  onNEOSelect: (neo: NEO, orbital: any) => void
+  onNEOSelect: (neo: NEO, orbital: OrbitalData) => void
   onParamsUpdate: (params: Partial<ImpactParams>) => void
 }
 
@@ -13,54 +14,96 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate }: NEOBrowserPr
   const [neos, setNeos] = useState<NEO[]>([])
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [message, setMessage] = useState<string | null>(null)
+
+  const integrateScenario = (list: NEO[] = []) => {
+    const hasImpactor = list.some((neo) => neo.id === IMPACTOR_2025.id)
+    return hasImpactor ? list : [IMPACTOR_2025, ...list]
+  }
 
   const browseNEOs = async (page = 0) => {
     setLoading(true)
+    setMessage(null)
     try {
       const url = `https://api.nasa.gov/neo/rest/v1/neo/browse?page=${page}&size=20&api_key=${API_KEY}`
       const response = await fetch(url)
+      if (!response.ok) {
+        throw new Error(`NeoWs responded with ${response.status}`)
+      }
       const data = await response.json()
-      setNeos(data.near_earth_objects || [])
+      const dataset = integrateScenario(data.near_earth_objects || [])
+      setNeos(dataset)
+      return dataset
     } catch (error) {
       console.error('Error fetching NEOs:', error)
+      setMessage('NeoWs request failed; using embedded training dataset.')
+      setNeos(FALLBACK_NEOS)
+      return FALLBACK_NEOS
     } finally {
       setLoading(false)
     }
   }
 
+  const applyScenarioParams = (neo: NEO) => {
+    if (neo.impact_scenario?.material_density) {
+      onParamsUpdate({ density: neo.impact_scenario.material_density })
+    }
+    if (neo.impact_scenario?.surface_type) {
+      onParamsUpdate({ target: neo.impact_scenario.surface_type })
+    }
+  }
+
+  const handleSelection = (neo: NEO) => {
+    const diameter = neo.estimated_diameter?.meters
+    if (diameter) {
+      const avgDiameter = Math.round(
+        (diameter.estimated_diameter_min + diameter.estimated_diameter_max) / 2
+      )
+      onParamsUpdate({ diameter: avgDiameter })
+    }
+
+    const velocity = neo.close_approach_data?.[0]?.relative_velocity?.kilometers_per_second
+    if (velocity) {
+      onParamsUpdate({ velocity: Number(velocity) })
+    }
+
+    applyScenarioParams(neo)
+
+    const orbitalData = parseOrbitalData(neo.orbital_data) || getDefaultOrbit()
+    onNEOSelect(neo, orbitalData)
+  }
+
   const selectNEO = async (id: string) => {
+    if (id === IMPACTOR_2025.id) {
+      handleSelection(IMPACTOR_2025)
+      return
+    }
+
     try {
       const url = `https://api.nasa.gov/neo/rest/v1/neo/${id}?api_key=${API_KEY}`
       const response = await fetch(url)
+      if (!response.ok) {
+        throw new Error(`NeoWs detail responded with ${response.status}`)
+      }
       const neo: NEO = await response.json()
-
-      // Update diameter
-      const diameter = neo.estimated_diameter?.meters
-      if (diameter) {
-        const avgDiameter = Math.round(
-          (diameter.estimated_diameter_min + diameter.estimated_diameter_max) / 2
-        )
-        onParamsUpdate({ diameter: avgDiameter })
-      }
-
-      // Update velocity
-      const velocity = neo.close_approach_data?.[0]?.relative_velocity?.kilometers_per_second
-      if (velocity) {
-        onParamsUpdate({ velocity: Number(velocity) })
-      }
-
-      // Parse orbital data
-      const orbitalData = parseOrbitalData(neo.orbital_data)
-      if (orbitalData) {
-        onNEOSelect(neo, orbitalData)
-      }
+      handleSelection(neo)
     } catch (error) {
       console.error('Error fetching NEO details:', error)
+      setMessage('Detail request failed; showing cached orbital solution.')
+      const fallback = FALLBACK_NEO_MAP.get(id)
+      if (fallback) {
+        handleSelection(fallback)
+      }
     }
   }
 
   useEffect(() => {
-    browseNEOs()
+    browseNEOs().then((dataset) => {
+      const scenarioNeo = dataset.find((item) => item.id === IMPACTOR_2025.id)
+      if (scenarioNeo) {
+        handleSelection(scenarioNeo)
+      }
+    })
   }, [])
 
   const filteredNEOs = neos.filter(neo =>
@@ -105,7 +148,18 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate }: NEOBrowserPr
                 onClick={() => selectNEO(neo.id)}
                 className="w-full text-left px-3 py-2 hover:bg-white/5 border-b border-white/5 transition-colors"
               >
-                <div className="text-sm font-medium">{neo.name}</div>
+                <div className="text-sm font-medium flex items-center gap-2">
+                  <span>{neo.name}</span>
+                  {neo.id === IMPACTOR_2025.id ? (
+                    <span className="rounded-full bg-red-500/20 px-2 py-[1px] text-[10px] font-semibold uppercase tracking-wide text-red-200">
+                      Scenario
+                    </span>
+                  ) : neo.is_potentially_hazardous_asteroid ? (
+                    <span className="rounded-full bg-yellow-500/10 px-2 py-[1px] text-[10px] uppercase tracking-wide text-yellow-200">
+                      PHA
+                    </span>
+                  ) : null}
+                </div>
                 <div className="text-[11px] label">
                   est. diameter: {diameterStr} • a={a || '—'} AU • e={e || '—'}
                 </div>
@@ -114,6 +168,7 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate }: NEOBrowserPr
           })
         )}
       </div>
+      {message ? <div className="text-[11px] label">{message}</div> : null}
     </div>
   )
 }

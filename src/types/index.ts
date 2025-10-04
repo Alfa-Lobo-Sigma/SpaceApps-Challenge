@@ -1,3 +1,20 @@
+export type SurfaceType = 'continental' | 'oceanic' | 'sedimentary'
+
+export interface ImpactParams {
+  diameter: number  // meters
+  velocity: number  // km/s
+  density: number   // kg/m³
+  target: SurfaceType
+}
+
+export interface ImpactResults {
+  mass: number  // kg
+  energy: number  // joules
+  energyMT: number  // megatons TNT
+  devastationRadius: number  // km
+  craterDiameter: number  // km
+}
+
 export interface NEO {
   id: string
   name: string
@@ -7,6 +24,7 @@ export interface NEO {
       estimated_diameter_max: number
     }
   }
+  is_potentially_hazardous_asteroid?: boolean
   orbital_data?: {
     semi_major_axis: string
     eccentricity: string
@@ -15,10 +33,22 @@ export interface NEO {
     perihelion_argument: string
   }
   close_approach_data?: Array<{
+    close_approach_date?: string
     relative_velocity: {
       kilometers_per_second: string
     }
+    miss_distance?: {
+      kilometers?: string
+    }
   }>
+  impact_scenario?: {
+    probability: number
+    impact_date: string
+    location: [number, number]  // [lat, lng]
+    surface_type: SurfaceType
+    material_density?: number
+    narrative: string
+  }
 }
 
 export interface OrbitalData {
@@ -27,19 +57,4 @@ export interface OrbitalData {
   i: number  // inclination (radians)
   omega: number  // longitude of ascending node (radians)
   w: number  // argument of perihelion (radians)
-}
-
-export interface ImpactParams {
-  diameter: number  // meters
-  velocity: number  // km/s
-  density: number   // kg/m³
-  target: 'continental' | 'oceanic' | 'sedimentary'
-}
-
-export interface ImpactResults {
-  mass: number  // kg
-  energy: number  // joules
-  energyMT: number  // megatons TNT
-  devastationRadius: number  // km
-  craterDiameter: number  // km
 }
