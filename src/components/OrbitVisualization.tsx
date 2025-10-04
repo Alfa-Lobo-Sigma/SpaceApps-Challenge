@@ -10,12 +10,14 @@ import {
   EARTH_MEAN_MOTION,
   getDefaultOrbit
 } from '../utils/orbital'
+import { useLanguage } from '../contexts/LanguageContext'
 
 interface OrbitVisualizationProps {
   orbitalData: OrbitalData | null
 }
 
 export default function OrbitVisualization({ orbitalData }: OrbitVisualizationProps) {
+  const { t } = useLanguage()
   const containerRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<THREE.Scene | null>(null)
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
@@ -213,10 +215,10 @@ export default function OrbitVisualization({ orbitalData }: OrbitVisualizationPr
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-semibold">3) 3D Orbit (animated)</h2>
-      <div className="flex flex-wrap gap-3 items-center text-sm mb-2">
-        <div className="flex items-center gap-2">
-          <span className="label">Time scale (×)</span>
+      <h2 className="text-base sm:text-lg font-semibold">{t('orbitViz.title')}</h2>
+      <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-3 items-start sm:items-center text-xs sm:text-sm mb-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <span className="label whitespace-nowrap">{t('orbitViz.timeScale')}</span>
           <input
             type="range"
             min="1000"
@@ -224,12 +226,12 @@ export default function OrbitVisualization({ orbitalData }: OrbitVisualizationPr
             step="1000"
             value={timeScale}
             onChange={(e) => setTimeScale(Number(e.target.value))}
-            className="w-32 sm:w-56"
+            className="flex-1 sm:w-32 lg:w-56"
           />
-          <span className="label">{timeScale.toLocaleString()}×</span>
+          <span className="label text-[10px] sm:text-xs whitespace-nowrap">{timeScale.toLocaleString()}×</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="label">Asteroid</span>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <span className="label whitespace-nowrap min-w-[60px]">{t('orbitViz.asteroid')}</span>
           <input
             type="range"
             min="0"
@@ -237,19 +239,19 @@ export default function OrbitVisualization({ orbitalData }: OrbitVisualizationPr
             step="0.1"
             value={astroSpeed}
             onChange={(e) => setAstroSpeed(Number(e.target.value))}
-            className="w-32 sm:w-40"
+            className="flex-1 sm:w-24 lg:w-32"
           />
           <select
             value={astroDir}
             onChange={(e) => setAstroDir(Number(e.target.value))}
-            className="bg-black/30 border border-white/10 rounded p-1 text-xs"
+            className="bg-black/30 border border-white/10 rounded p-1 text-[10px] sm:text-xs"
           >
-            <option value="1">⟲ forward</option>
-            <option value="-1">⟳ reverse</option>
+            <option value="1">{t('orbitViz.forward')}</option>
+            <option value="-1">{t('orbitViz.reverse')}</option>
           </select>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="label">Earth</span>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <span className="label whitespace-nowrap min-w-[60px]">{t('orbitViz.earth')}</span>
           <input
             type="range"
             min="0"
@@ -257,15 +259,15 @@ export default function OrbitVisualization({ orbitalData }: OrbitVisualizationPr
             step="0.1"
             value={earthSpeed}
             onChange={(e) => setEarthSpeed(Number(e.target.value))}
-            className="w-32 sm:w-40"
+            className="flex-1 sm:w-24 lg:w-32"
           />
           <select
             value={earthDir}
             onChange={(e) => setEarthDir(Number(e.target.value))}
-            className="bg-black/30 border border-white/10 rounded p-1 text-xs"
+            className="bg-black/30 border border-white/10 rounded p-1 text-[10px] sm:text-xs"
           >
-            <option value="1">⟲ forward</option>
-            <option value="-1">⟳ reverse</option>
+            <option value="1">{t('orbitViz.forward')}</option>
+            <option value="-1">{t('orbitViz.reverse')}</option>
           </select>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import type { ImpactResults } from '../types'
+import { useLanguage } from '../contexts/LanguageContext'
 import 'leaflet/dist/leaflet.css'
 
 // Fix Leaflet marker icon issue with Vite
@@ -22,6 +23,7 @@ interface ImpactMapProps {
 }
 
 export default function ImpactMap({ location, results, onLocationSelect }: ImpactMapProps) {
+  const { t } = useLanguage()
   const mapRef = useRef<L.Map | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const impactMarkerRef = useRef<L.Marker | null>(null)
@@ -111,10 +113,10 @@ export default function ImpactMap({ location, results, onLocationSelect }: Impac
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-semibold pt-2">4) Impact map</h2>
-      <div ref={containerRef} className="w-full h-80 rounded-xl border border-white/10" />
-      <div className="text-xs label">
-        OSM basemap; click to set impact location. Orange ring = devastation radius, Red ring = crater radius.
+      <h2 className="text-base sm:text-lg font-semibold pt-2">{t('impactMap.title')}</h2>
+      <div ref={containerRef} className="w-full h-64 sm:h-80 rounded-xl border border-white/10" />
+      <div className="text-[10px] sm:text-xs label">
+        {t('impactMap.description')}
       </div>
     </div>
   )
