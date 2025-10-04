@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { NEO, ImpactParams } from '../types'
 import { parseOrbitalData } from '../utils/orbital'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const API_KEY = 'QVQTFgjfy9QfI1tI237pylpTfp4K53a4lrtYquHL'
 
@@ -10,6 +11,7 @@ interface NEOBrowserProps {
 }
 
 export default function NEOBrowser({ onNEOSelect, onParamsUpdate }: NEOBrowserProps) {
+  const { t } = useLanguage()
   const [neos, setNeos] = useState<NEO[]>([])
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -69,27 +71,27 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate }: NEOBrowserPr
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold">1) Browse NEOs (NASA NeoWs)</h2>
-      <div className="flex gap-2">
+      <h2 className="text-base sm:text-lg font-semibold">{t('neoBrowser.title')}</h2>
+      <div className="flex flex-col sm:flex-row gap-2">
         <button
           onClick={() => browseNEOs()}
-          className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+          className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-sm sm:text-base whitespace-nowrap"
           disabled={loading}
         >
-          {loading ? 'Loading...' : 'Browse NEOs'}
+          {loading ? t('neoBrowser.loading') : t('neoBrowser.title')}
         </button>
         <input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 rounded-lg p-2 bg-black/30 border border-white/10 focus:outline-none focus:border-white/30 transition-colors"
+          className="flex-1 rounded-lg p-2 bg-black/30 border border-white/10 focus:outline-none focus:border-white/30 transition-colors text-sm"
           placeholder="Filter by name (e.g., Apophis, Bennu)"
         />
       </div>
       <div className="max-h-56 overflow-auto rounded-lg border border-white/10 text-sm">
         {loading ? (
-          <div className="p-2 text-sm label">Loading…</div>
+          <div className="p-2 text-sm label">{t('neoBrowser.loading')}</div>
         ) : filteredNEOs.length === 0 ? (
-          <div className="p-2 text-sm label">No NEOs found</div>
+          <div className="p-2 text-sm label">{t('neoBrowser.selectNeo')}</div>
         ) : (
           filteredNEOs.map((neo) => {
             const diameter = neo.estimated_diameter?.meters
