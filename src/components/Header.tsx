@@ -1,4 +1,6 @@
 import type { MouseEventHandler } from 'react'
+import ThemeSwitcher from './ThemeSwitcher'
+import LanguageSwitcher from './LanguageSwitcher'
 
 type HeaderProps = {
   onPreparednessClick: MouseEventHandler<HTMLButtonElement>
@@ -19,6 +21,8 @@ export default function Header({ onPreparednessClick, onTutorialClick }: HeaderP
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <LanguageSwitcher />
+          <ThemeSwitcher />
           <button
             type="button"
             onClick={onTutorialClick}
