@@ -12,13 +12,13 @@ function App() {
   const [orbitalData, setOrbitalData] = useState<OrbitalData | null>(null)
   const [selectedNEO, setSelectedNEO] = useState<NEO | null>(null)
   const [impactParams, setImpactParams] = useState<ImpactParams>({
-    diameter: 120,
+    diameter: 2000,
     velocity: 17,
     density: 3000,
     target: 'continental'
   })
   const [impactResults, setImpactResults] = useState<ImpactResults | null>(null)
-  const [impactLocation, setImpactLocation] = useState<[number, number]>([29.07, -105.56])
+  const [impactLocation, setImpactLocation] = useState<[number, number]>([28.632995, -106.0691])
 
   const handleNEOSelect = (neo: NEO, orbital: OrbitalData) => {
     setSelectedNEO(neo)

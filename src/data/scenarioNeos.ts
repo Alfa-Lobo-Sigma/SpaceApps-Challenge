@@ -6,8 +6,8 @@ export const IMPACTOR_2025: NEO = {
   is_potentially_hazardous_asteroid: true,
   estimated_diameter: {
     meters: {
-      estimated_diameter_min: 330,
-      estimated_diameter_max: 350,
+      estimated_diameter_min: 1900,
+      estimated_diameter_max: 2100,
     },
   },
   close_approach_data: [
@@ -31,11 +31,12 @@ export const IMPACTOR_2025: NEO = {
   impact_scenario: {
     probability: 1,
     impact_date: '2025-10-17T14:22:00Z',
-    location: [29.07, -105.56],
+    location: [28.632995, -106.0691],
     surface_type: 'continental',
     material_density: 3200,
     narrative:
       'Scenario exercise: modeled impact trajectory derived from NeoWs elements with forced Earth intercept on 17 Oct 2025. '
+      + 'This variant assumes a direct strike on Chihuahua City, Mexico by a ~2 km-class impactor. '
       + 'Used to stress-test mitigation workflows; not an actual NASA impact prediction.',
   },
 }
