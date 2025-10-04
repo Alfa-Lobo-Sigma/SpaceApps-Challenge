@@ -7,6 +7,7 @@ import OrbitVisualization from './components/OrbitVisualization'
 import ImpactMap from './components/ImpactMap'
 import NEOScenarioSummary from './components/NEOScenarioSummary'
 import PreparednessModal from './components/PreparednessModal'
+import MitigationStrategies from './components/MitigationStrategies'
 import type { OrbitalData, ImpactParams, ImpactResults, NEO } from './types'
 import { mergeImpactParams, normalizeImpactParams } from './utils/validation'
 
@@ -67,6 +68,8 @@ function App() {
             onLocationSelect={handleLocationSelect}
           />
         </section>
+
+        <MitigationStrategies neo={selectedNEO} className="lg:col-span-3" />
       </main>
       <Footer />
       <PreparednessModal open={isPreparednessOpen} onClose={() => setPreparednessOpen(false)} />
