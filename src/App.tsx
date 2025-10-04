@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Header from './components/Header'
+import Footer from './components/Footer'
 import NEOBrowser from './components/NEOBrowser'
 import ImpactParameters from './components/ImpactParameters'
 import OrbitVisualization from './components/OrbitVisualization'
@@ -34,9 +35,9 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="max-w-7xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <main className="max-w-7xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1">
         <section className="panel rounded-2xl p-4 space-y-4">
           <NEOBrowser onNEOSelect={handleNEOSelect} onParamsUpdate={handleParamsUpdate} />
           <ImpactParameters
@@ -55,6 +56,7 @@ function App() {
           />
         </section>
       </main>
+      <Footer />
     </div>
   )
 }
