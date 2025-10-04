@@ -3,6 +3,7 @@ import type { ImpactParams, ImpactResults } from '../types'
 import { calculateImpactResults, formatMass, formatEnergy, formatKm, formatMT } from '../utils/physics'
 import { useLanguage } from '../contexts/LanguageContext'
 import { IMPACT_PARAM_LIMITS } from '../utils/validation'
+import PhysicsTooltip from './PhysicsTooltip'
 
 type NumericField = 'diameter' | 'velocity' | 'density'
 
@@ -85,7 +86,10 @@ export default function ImpactParameters({
       <h2 className="text-base sm:text-lg font-semibold pt-2">{t('impactParams.title')}</h2>
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div>
-          <label className="label block mb-1 text-xs">{t('impactParams.diameter')}</label>
+          <label className="label mb-1 flex items-center gap-1 text-xs">
+            {t('impactParams.diameter')}
+            <PhysicsTooltip term="diameter" />
+          </label>
           <input
             type="number"
             inputMode="decimal"
@@ -109,7 +113,10 @@ export default function ImpactParameters({
           )}
         </div>
         <div>
-          <label className="label block mb-1 text-xs">{t('impactParams.velocity')}</label>
+          <label className="label mb-1 flex items-center gap-1 text-xs">
+            {t('impactParams.velocity')}
+            <PhysicsTooltip term="velocity" />
+          </label>
           <input
             type="number"
             inputMode="decimal"
@@ -133,7 +140,10 @@ export default function ImpactParameters({
           )}
         </div>
         <div>
-          <label className="label block mb-1 text-xs">{t('impactParams.density')}</label>
+          <label className="label mb-1 flex items-center gap-1 text-xs">
+            {t('impactParams.density')}
+            <PhysicsTooltip term="density" />
+          </label>
           <input
             type="number"
             inputMode="decimal"
@@ -157,7 +167,10 @@ export default function ImpactParameters({
           )}
         </div>
         <div>
-          <label className="label block mb-1 text-xs">{t('impactParams.target')}</label>
+          <label className="label mb-1 flex items-center gap-1 text-xs">
+            {t('impactParams.target')}
+            <PhysicsTooltip term="target" />
+          </label>
           <select
             value={params.target}
             onChange={(e) => onParamsChange({ ...params, target: e.target.value as any })}
@@ -181,20 +194,32 @@ export default function ImpactParameters({
       <h2 className="text-base sm:text-lg font-semibold pt-2">{t('impactParams.results')}</h2>
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div className="metric rounded-xl p-3">
-          <div className="label text-xs">{t('impactParams.mass')}</div>
+          <div className="label flex items-center gap-1 text-xs">
+            {t('impactParams.mass')}
+            <PhysicsTooltip term="mass" />
+          </div>
           <div className="text-base sm:text-lg font-semibold">{formatMass(results.mass)}</div>
         </div>
         <div className="metric rounded-xl p-3">
-          <div className="label text-xs">{t('impactParams.energy')}</div>
+          <div className="label flex items-center gap-1 text-xs">
+            {t('impactParams.energy')}
+            <PhysicsTooltip term="energy" />
+          </div>
           <div className="text-base sm:text-lg font-semibold">{formatEnergy(results.energy)}</div>
           <div className="label text-[10px] sm:text-[11px]">{formatMT(results.energyMT)}</div>
         </div>
         <div className="metric rounded-xl p-3">
-          <div className="label text-xs">{t('impactParams.devastation')}</div>
+          <div className="label flex items-center gap-1 text-xs">
+            {t('impactParams.devastation')}
+            <PhysicsTooltip term="devastationRadius" />
+          </div>
           <div className="text-base sm:text-lg font-semibold">{formatKm(results.devastationRadius)}</div>
         </div>
         <div className="metric rounded-xl p-3">
-          <div className="label text-xs">{t('impactParams.crater')}</div>
+          <div className="label flex items-center gap-1 text-xs">
+            {t('impactParams.crater')}
+            <PhysicsTooltip term="craterDiameter" />
+          </div>
           <div className="text-base sm:text-lg font-semibold">{formatKm(results.craterDiameter)}</div>
         </div>
       </div>

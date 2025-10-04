@@ -11,6 +11,7 @@ import {
   getDefaultOrbit
 } from '../utils/orbital'
 import { useLanguage } from '../contexts/LanguageContext'
+import OrbitalMechanicsExplainers from './OrbitalMechanicsExplainers'
 
 interface OrbitVisualizationProps {
   orbitalData: OrbitalData | null
@@ -314,6 +315,7 @@ export default function OrbitVisualization({ orbitalData }: OrbitVisualizationPr
         ref={containerRef}
         className="w-full h-64 md:h-80 lg:h-[28rem] rounded-xl border border-white/10"
       />
+      <OrbitalMechanicsExplainers orbitalData={orbitalData} />
     </div>
   )
 }
