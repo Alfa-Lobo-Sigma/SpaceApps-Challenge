@@ -1,5 +1,12 @@
 import type { NEO, ImpactResults } from '../types'
-import { formatEnergy, formatMT, formatKm } from '../utils/physics'
+import {
+  formatEnergy,
+  formatMT,
+  formatKm,
+  formatPopulation,
+  formatCurrency,
+  formatIndex
+} from '../utils/physics'
 import type { GeologyAdjustedResults, GeologyAssessment } from '../utils/geology'
 import PhysicsTooltip from './PhysicsTooltip'
 
@@ -23,6 +30,25 @@ const formatProbability = (value?: number) => {
   if (value === undefined) return 'Unknown'
   return `${Math.round(value * 100)}%`
 }
+
+const cascadeLabels = {
+  localized: 'Localized',
+  regional: 'Regional',
+  global: 'Global'
+} as const
+
+const responseLabels = {
+  monitor: 'Monitor & inform',
+  coordinate: 'Coordinate regionally',
+  mobilize: 'Mobilize internationally'
+} as const
+
+const categoryLabels = {
+  minimal: 'Minimal',
+  moderate: 'Moderate',
+  severe: 'Severe',
+  extreme: 'Extreme'
+} as const
 
 export default function NEOScenarioSummary({
   neo,
@@ -128,8 +154,8 @@ export default function NEOScenarioSummary({
               <div className="text-[11px] label">Geology profile {geology.profile.label}</div>
             ) : (
               <div className="text-[11px] label">Baseline heuristic</div>
-            )}
-          </div>
+          )}
+        </div>
         <div className="metric rounded-lg p-3 sm:col-span-2">
           <div className="label flex items-center gap-1 text-xs">
             Crater diameter*
@@ -160,6 +186,33 @@ export default function NEOScenarioSummary({
               ) : null}
             </div>
           ) : null}
+          <div className="metric rounded-lg p-3">
+            <div className="label text-xs">Population exposed</div>
+            <div className="text-sm font-semibold">{formatPopulation(impactResults.population.exposed)}</div>
+            <div className="text-[11px] label">Displaced {formatPopulation(impactResults.population.displaced)}</div>
+          </div>
+          <div className="metric rounded-lg p-3">
+            <div className="label text-xs">Economic loss</div>
+            <div className="text-sm font-semibold">{formatCurrency(impactResults.economic.directDamage)}</div>
+            <div className="text-[11px] label">Infrastructure {formatCurrency(impactResults.economic.infrastructureLoss)}</div>
+          </div>
+          <div className="metric rounded-lg p-3">
+            <div className="label text-xs">Environmental severity</div>
+            <div className="text-sm font-semibold">{formatIndex(impactResults.environmental.severityIndex)}</div>
+            <div className="text-[11px] label">
+              Category {categoryLabels[impactResults.environmental.category]}
+            </div>
+          </div>
+          <div className="metric rounded-lg p-3">
+            <div className="label text-xs">Cascade outlook</div>
+            <div className="text-sm font-semibold">
+              {cascadeLabels[impactResults.multiImpact.classification]} cascade
+            </div>
+            <div className="text-[11px] label">
+              Risk {formatIndex(impactResults.multiImpact.cascadingRisk)} • Response{' '}
+              {responseLabels[impactResults.multiImpact.responseLevel]}
+            </div>
+          </div>
         </div>
       ) : (
         <p className="text-xs label">Adjust parameters to compute energy release and crater size.</p>

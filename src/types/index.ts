@@ -7,12 +7,45 @@ export interface ImpactParams {
   target: SurfaceType
 }
 
+export type ImpactSeverityCategory = 'minimal' | 'moderate' | 'severe' | 'extreme'
+export type ImpactCascadeLevel = 'localized' | 'regional' | 'global'
+export type ResponseLevel = 'monitor' | 'coordinate' | 'mobilize'
+
+export interface PopulationImpact {
+  exposed: number  // people
+  displaced: number  // people
+  fatalities: number  // people
+}
+
+export interface EconomicImpact {
+  directDamage: number  // USD
+  infrastructureLoss: number  // USD
+  recoveryYears: number  // years
+}
+
+export interface EnvironmentalImpact {
+  severityIndex: number  // 0-100 scale
+  airQualityIndex: number  // 0-100 scale
+  waterQualityIndex: number  // 0-100 scale
+  category: ImpactSeverityCategory
+}
+
+export interface MultiImpactScenario {
+  classification: ImpactCascadeLevel
+  cascadingRisk: number  // 0-100 scale
+  responseLevel: ResponseLevel
+}
+
 export interface ImpactResults {
   mass: number  // kg
   energy: number  // joules
   energyMT: number  // megatons TNT
   devastationRadius: number  // km
   craterDiameter: number  // km
+  population: PopulationImpact
+  economic: EconomicImpact
+  environmental: EnvironmentalImpact
+  multiImpact: MultiImpactScenario
 }
 
 export interface NEO {

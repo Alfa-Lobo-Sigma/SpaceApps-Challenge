@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react'
 import type { ImpactParams, ImpactResults } from '../types'
-import { calculateImpactResults, formatMass, formatEnergy, formatKm, formatMT } from '../utils/physics'
+import {
+  calculateImpactResults,
+  formatMass,
+  formatEnergy,
+  formatKm,
+  formatMT,
+  formatPopulation,
+  formatCurrency,
+  formatYears,
+  formatIndex
+} from '../utils/physics'
 import { useLanguage } from '../contexts/LanguageContext'
 import { IMPACT_PARAM_LIMITS } from '../utils/validation'
 import PhysicsTooltip from './PhysicsTooltip'
@@ -221,6 +231,80 @@ export default function ImpactParameters({
             <PhysicsTooltip term="craterDiameter" />
           </div>
           <div className="text-base sm:text-lg font-semibold">{formatKm(results.craterDiameter)}</div>
+        </div>
+      </div>
+
+      <h3 className="text-base sm:text-lg font-semibold pt-4">{t('impactParams.population.title')}</h3>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 text-sm">
+        <div className="metric rounded-xl p-3">
+          <div className="label text-xs">{t('impactParams.population.exposed')}</div>
+          <div className="text-base sm:text-lg font-semibold">{formatPopulation(results.population.exposed)}</div>
+        </div>
+        <div className="metric rounded-xl p-3">
+          <div className="label text-xs">{t('impactParams.population.displaced')}</div>
+          <div className="text-base sm:text-lg font-semibold">{formatPopulation(results.population.displaced)}</div>
+        </div>
+        <div className="metric rounded-xl p-3">
+          <div className="label text-xs">{t('impactParams.population.fatalities')}</div>
+          <div className="text-base sm:text-lg font-semibold">{formatPopulation(results.population.fatalities)}</div>
+        </div>
+      </div>
+
+      <h3 className="text-base sm:text-lg font-semibold pt-4">{t('impactParams.economic.title')}</h3>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 text-sm">
+        <div className="metric rounded-xl p-3">
+          <div className="label text-xs">{t('impactParams.economic.directDamage')}</div>
+          <div className="text-base sm:text-lg font-semibold">{formatCurrency(results.economic.directDamage)}</div>
+        </div>
+        <div className="metric rounded-xl p-3">
+          <div className="label text-xs">{t('impactParams.economic.infrastructureLoss')}</div>
+          <div className="text-base sm:text-lg font-semibold">{formatCurrency(results.economic.infrastructureLoss)}</div>
+        </div>
+        <div className="metric rounded-xl p-3">
+          <div className="label text-xs">{t('impactParams.economic.recovery')}</div>
+          <div className="text-base sm:text-lg font-semibold">{formatYears(results.economic.recoveryYears)}</div>
+        </div>
+      </div>
+
+      <h3 className="text-base sm:text-lg font-semibold pt-4">{t('impactParams.environmental.title')}</h3>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-4 text-sm">
+        <div className="metric rounded-xl p-3">
+          <div className="label text-xs">{t('impactParams.environmental.severity')}</div>
+          <div className="text-base sm:text-lg font-semibold">{formatIndex(results.environmental.severityIndex)}</div>
+        </div>
+        <div className="metric rounded-xl p-3">
+          <div className="label text-xs">{t('impactParams.environmental.air')}</div>
+          <div className="text-base sm:text-lg font-semibold">{formatIndex(results.environmental.airQualityIndex)}</div>
+        </div>
+        <div className="metric rounded-xl p-3">
+          <div className="label text-xs">{t('impactParams.environmental.water')}</div>
+          <div className="text-base sm:text-lg font-semibold">{formatIndex(results.environmental.waterQualityIndex)}</div>
+        </div>
+        <div className="metric rounded-xl p-3">
+          <div className="label text-xs">{t('impactParams.environmental.category.label')}</div>
+          <div className="text-base sm:text-lg font-semibold">
+            {t(`impactParams.environmental.category.${results.environmental.category}`)}
+          </div>
+        </div>
+      </div>
+
+      <h3 className="text-base sm:text-lg font-semibold pt-4">{t('impactParams.multiImpact.title')}</h3>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 text-sm">
+        <div className="metric rounded-xl p-3">
+          <div className="label text-xs">{t('impactParams.multiImpact.classification')}</div>
+          <div className="text-base sm:text-lg font-semibold">
+            {t(`impactParams.multiImpact.level.${results.multiImpact.classification}`)}
+          </div>
+        </div>
+        <div className="metric rounded-xl p-3">
+          <div className="label text-xs">{t('impactParams.multiImpact.risk')}</div>
+          <div className="text-base sm:text-lg font-semibold">{formatIndex(results.multiImpact.cascadingRisk)}</div>
+        </div>
+        <div className="metric rounded-xl p-3">
+          <div className="label text-xs">{t('impactParams.multiImpact.response')}</div>
+          <div className="text-base sm:text-lg font-semibold">
+            {t(`impactParams.multiImpact.responseLevel.${results.multiImpact.responseLevel}`)}
+          </div>
         </div>
       </div>
     </div>
