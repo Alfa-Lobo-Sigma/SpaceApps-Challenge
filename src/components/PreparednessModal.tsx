@@ -5,79 +5,79 @@ type PreparednessModalProps = {
   onClose: () => void
 }
 
-type ScenarioKey = 'continental' | 'oceánico' | 'urbano'
+type ScenarioKey = 'continental' | 'oceanic' | 'urban'
 
 type IndustryImpact = {
   sector: string
-  impacto: string
-  recomendaciones: string
+  impact: string
+  recommendations: string
 }
 
 const scenarioLabels: Record<ScenarioKey, string> = {
-  continental: 'Impacto continental',
-  oceánico: 'Impacto oceánico',
-  urbano: 'Impacto en zona urbana'
+  continental: 'Continental impact',
+  oceanic: 'Oceanic impact',
+  urban: 'Urban impact'
 }
 
 const scenarioSummaries: Record<ScenarioKey, string> = {
   continental:
-    'Un impacto en tierra firme puede generar ondas de choque y eyecciones de material que afectan extensas áreas rurales y agrícolas.',
-  oceánico:
-    'El impacto en el océano crea tsunamis y alteraciones en cadenas de suministro marítimo y puertos regionales.',
-  urbano:
-    'Los centros urbanos concentran población y servicios críticos, por lo que requieren planes detallados de evacuación y continuidad operativa.'
+    'An impact on land can generate shockwaves and ejecta that affect extensive rural and agricultural areas.',
+  oceanic:
+    'An impact in the ocean creates tsunamis and disrupts maritime supply chains and regional ports.',
+  urban:
+    'Urban centers concentrate population and critical services, requiring detailed evacuation and continuity plans.'
 }
 
 const scenarioIndustries: Record<ScenarioKey, IndustryImpact[]> = {
   continental: [
     {
-      sector: 'Agricultura',
-      impacto: 'Pérdida de cultivos por onda expansiva y contaminación de suelos.',
-      recomendaciones: 'Activar planes de contingencia alimentaria y asegurar reservas estratégicas.'
+      sector: 'Agriculture',
+      impact: 'Crop loss from blast waves and soil contamination.',
+      recommendations: 'Activate food contingency plans and secure strategic reserves.'
     },
     {
-      sector: 'Transporte terrestre',
-      impacto: 'Interrupción de carreteras y vías férreas clave para distribución.',
-      recomendaciones: 'Identificar rutas alternas y coordinar con protección civil.'
+      sector: 'Ground transportation',
+      impact: 'Disruption to highways and railways that enable distribution.',
+      recommendations: 'Identify alternate routes and coordinate with emergency management agencies.'
     },
     {
-      sector: 'Energía',
-      impacto: 'Daños potenciales a líneas de transmisión y subestaciones regionales.',
-      recomendaciones: 'Desconectar áreas vulnerables y desplegar equipos de reparación móvil.'
+      sector: 'Energy',
+      impact: 'Potential damage to transmission lines and regional substations.',
+      recommendations: 'Isolate vulnerable segments and deploy mobile repair crews.'
     }
   ],
-  oceánico: [
+  oceanic: [
     {
-      sector: 'Pesca y acuicultura',
-      impacto: 'Oleaje extremo y alteración de ecosistemas costeros.',
-      recomendaciones: 'Suspender operaciones y reubicar embarcaciones a puertos seguros.'
+      sector: 'Fishing and aquaculture',
+      impact: 'Extreme waves and disruption to coastal ecosystems.',
+      recommendations: 'Suspend operations and relocate vessels to safe harbors.'
     },
     {
-      sector: 'Logística portuaria',
-      impacto: 'Cierres de puertos y daños a infraestructura marítima.',
-      recomendaciones: 'Redirigir cargas a puertos alternos y coordinar con autoridades navales.'
+      sector: 'Port logistics',
+      impact: 'Port closures and damage to maritime infrastructure.',
+      recommendations: 'Reroute cargo to alternate ports and coordinate with naval authorities.'
     },
     {
-      sector: 'Turismo costero',
-      impacto: 'Evacuación masiva y cancelaciones por riesgos de tsunami.',
-      recomendaciones: 'Implementar planes de comunicación para visitantes y asegurar rutas de evacuación.'
+      sector: 'Coastal tourism',
+      impact: 'Mass evacuations and cancellations due to tsunami risk.',
+      recommendations: 'Implement visitor communication plans and secure evacuation routes.'
     }
   ],
-  urbano: [
+  urban: [
     {
-      sector: 'Servicios de salud',
-      impacto: 'Sobrecarga hospitalaria y necesidad de triage masivo.',
-      recomendaciones: 'Habilitar hospitales de campaña y reforzar cadenas de suministro médico.'
+      sector: 'Healthcare services',
+      impact: 'Hospital overload and a need for mass triage.',
+      recommendations: 'Stand up field hospitals and reinforce medical supply chains.'
     },
     {
-      sector: 'Telecomunicaciones',
-      impacto: 'Interrupción de redes móviles y de datos que soportan servicios críticos.',
-      recomendaciones: 'Desplegar unidades móviles de comunicaciones y redundancias satelitales.'
+      sector: 'Telecommunications',
+      impact: 'Mobile and data network disruption affecting critical services.',
+      recommendations: 'Deploy mobile communication units and satellite redundancies.'
     },
     {
-      sector: 'Finanzas',
-      impacto: 'Cierre temporal de mercados y vulnerabilidad de infraestructura bancaria.',
-      recomendaciones: 'Activar planes de continuidad de negocio y respaldos fuera de sitio.'
+      sector: 'Finance',
+      impact: 'Temporary market closures and vulnerable banking infrastructure.',
+      recommendations: 'Activate business continuity plans and off-site backups.'
     }
   ]
 }
@@ -90,53 +90,53 @@ export default function PreparednessModal({ open, onClose }: PreparednessModalPr
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4 py-8">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4 py-8">
       <div className="panel max-w-3xl w-full max-h-full overflow-y-auto rounded-3xl border border-white/10">
         <div className="flex items-start justify-between gap-4 border-b border-white/10 p-6">
           <div>
-            <h2 className="text-2xl font-semibold">Guía ante un posible impacto</h2>
+            <h2 className="text-2xl font-semibold">Asteroid impact preparedness guide</h2>
             <p className="label mt-1">
-              Información recomendada para autoridades y público general, junto con datos clave para la toma de decisiones.
+              Recommended actions for emergency managers and the public, with decision-ready data points.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="rounded-full border border-white/20 px-3 py-1 text-sm hover:border-white/40 transition-colors"
-            aria-label="Cerrar modal"
+            aria-label="Close modal"
           >
-            Cerrar
+            Close
           </button>
         </div>
 
         <div className="space-y-6 p-6">
           <section className="space-y-3">
-            <h3 className="text-lg font-semibold">Acciones inmediatas para la población</h3>
+            <h3 className="text-lg font-semibold">Immediate public actions</h3>
             <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed text-white/80">
-              <li>Seguir los canales oficiales de protección civil y evitar la difusión de rumores.</li>
-              <li>Preparar un kit de emergencia con agua, alimentos no perecederos, linternas y botiquín.</li>
-              <li>Definir puntos de encuentro familiares y rutas de evacuación alternativas.</li>
-              <li>Proteger documentación importante en formatos digitales y físicos resistentes.</li>
-              <li>Atender indicaciones sobre refugios temporales y horarios de desplazamiento seguros.</li>
+              <li>Follow official emergency channels and avoid sharing unverified information.</li>
+              <li>Assemble a go-kit with water, non-perishable food, flashlights, and first-aid supplies.</li>
+              <li>Choose family meeting points and alternate evacuation routes.</li>
+              <li>Secure critical documents in resilient digital and physical formats.</li>
+              <li>Monitor guidance on temporary shelters and safe travel windows.</li>
             </ul>
           </section>
 
           <section className="grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 md:grid-cols-2">
             <div>
-              <h3 className="text-lg font-semibold">Recomendaciones para autoridades</h3>
+              <h3 className="text-lg font-semibold">Guidance for authorities</h3>
               <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-relaxed text-white/80">
-                <li>Activar centros de operación de emergencia y coordinar con agencias científicas.</li>
-                <li>Monitorear modelos de trayectoria y actualizar escenarios cada 30 minutos.</li>
-                <li>Priorizar la protección de infraestructuras críticas y redes de comunicación.</li>
-                <li>Emitir boletines bilingües y accesibles para comunidades vulnerables.</li>
+                <li>Activate emergency operations centers and coordinate with science agencies.</li>
+                <li>Monitor trajectory models and refresh scenarios every 30 minutes.</li>
+                <li>Prioritize critical infrastructure and communications network protection.</li>
+                <li>Release accessible, multilingual bulletins for vulnerable communities.</li>
               </ul>
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Recursos sugeridos</h3>
+              <h3 className="text-lg font-semibold">Suggested resources</h3>
               <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-relaxed text-white/80">
-                <li>Dashboard de la NASA (Sentry II) para seguimiento de objetos cercanos.</li>
-                <li>Red Internacional de Alerta de Tsunamis para impactos oceánicos.</li>
-                <li>Plataformas de mapas de riesgo locales (OpenData, IDEs estatales).</li>
+                <li>NASA Sentry II dashboard for near-Earth object tracking.</li>
+                <li>International Tsunami Warning Network for ocean impact alerts.</li>
+                <li>Local risk mapping platforms (OpenData, regional SDIs).</li>
               </ul>
             </div>
           </section>
@@ -144,11 +144,11 @@ export default function PreparednessModal({ open, onClose }: PreparednessModalPr
           <section className="space-y-3">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <h3 className="text-lg font-semibold">Análisis de impacto por industria</h3>
-                <p className="label">Selecciona el escenario para ver sectores críticos y recomendaciones.</p>
+                <h3 className="text-lg font-semibold">Industry impact analysis</h3>
+                <p className="label">Select a scenario to reveal critical sectors and recommended actions.</p>
               </div>
               <label className="flex items-center gap-2 text-sm">
-                <span className="label">Escenario</span>
+                <span className="label">Scenario</span>
                 <select
                   value={selectedScenario}
                   onChange={event => setSelectedScenario(event.target.value as ScenarioKey)}
@@ -170,16 +170,16 @@ export default function PreparednessModal({ open, onClose }: PreparednessModalPr
                 <thead className="bg-white/5 text-xs uppercase tracking-wide text-white/60">
                   <tr>
                     <th scope="col" className="px-4 py-3">Sector</th>
-                    <th scope="col" className="px-4 py-3">Impacto esperado</th>
-                    <th scope="col" className="px-4 py-3">Recomendaciones clave</th>
+                    <th scope="col" className="px-4 py-3">Expected impact</th>
+                    <th scope="col" className="px-4 py-3">Key recommendations</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {industries.map(industry => (
                     <tr key={industry.sector} className="bg-black/30">
                       <td className="px-4 py-3 font-medium text-white/90">{industry.sector}</td>
-                      <td className="px-4 py-3 text-white/75">{industry.impacto}</td>
-                      <td className="px-4 py-3 text-white/75">{industry.recomendaciones}</td>
+                      <td className="px-4 py-3 text-white/75">{industry.impact}</td>
+                      <td className="px-4 py-3 text-white/75">{industry.recommendations}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -188,12 +188,12 @@ export default function PreparednessModal({ open, onClose }: PreparednessModalPr
           </section>
 
           <section className="space-y-3">
-            <h3 className="text-lg font-semibold">Comunicación y seguimiento</h3>
+            <h3 className="text-lg font-semibold">Communication and monitoring</h3>
             <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed text-white/80">
-              <li>Establecer ventanas horarias para actualizaciones públicas y conferencias de prensa.</li>
-              <li>Compartir mapas de zonas de riesgo y rutas de evacuación en formatos accesibles.</li>
-              <li>Integrar datos de sensores locales, reportes comunitarios y satélites para validar daños.</li>
-              <li>Registrar lecciones aprendidas en plataformas colaborativas para futuras mejoras.</li>
+              <li>Schedule regular public updates and press briefings.</li>
+              <li>Share risk maps and evacuation routes in accessible formats.</li>
+              <li>Integrate local sensors, community reports, and satellite data to confirm damage.</li>
+              <li>Document lessons learned in collaborative platforms for future improvement.</li>
             </ul>
           </section>
         </div>
