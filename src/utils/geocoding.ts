@@ -12,6 +12,20 @@ export interface AffectedCity {
  * @param radiusKm Radius in kilometers
  * @returns Array of affected cities
  */
+interface OverpassElement {
+  lat: number
+  lon: number
+  tags: {
+    name?: string
+    place?: string
+    population?: string
+  }
+}
+
+interface OverpassResponse {
+  elements?: OverpassElement[]
+}
+
 export async function fetchAffectedCities(
   lat: number,
   lng: number,
@@ -39,11 +53,12 @@ export async function fetchAffectedCities(
       throw new Error('Failed to fetch cities')
     }
 
-    const data = await response.json()
+    const data = (await response.json()) as OverpassResponse
+    const elements = data.elements ?? []
 
     // Process and sort by distance
-    const cities: AffectedCity[] = data.elements
-      .map((element: any) => {
+    const cities: AffectedCity[] = elements
+      .map((element) => {
         const cityLat = element.lat
         const cityLng = element.lon
         const distance = calculateDistance(lat, lng, cityLat, cityLng)
