@@ -95,18 +95,23 @@ const ImpactMap = forwardRef<ImpactMapHandle, ImpactMapProps>(
         map.remove()
         mapRef.current = null
       }
-    }, [location, onLocationSelect])
+    }, [onLocationSelect])
 
     // Update location
     useEffect(() => {
       if (!mapRef.current) return
 
+      const map = mapRef.current
+      const currentZoom = map.getZoom()
+      map.setView(location, currentZoom)
+
       // Update or create marker
       if (impactMarkerRef.current) {
-        impactMarkerRef.current.remove()
+        impactMarkerRef.current.setLatLng(location)
+      } else {
+        const marker = L.marker(location, { title: 'Impact' }).addTo(map)
+        impactMarkerRef.current = marker
       }
-      const marker = L.marker(location, { title: 'Impact' }).addTo(mapRef.current)
-      impactMarkerRef.current = marker
 
       // Update rings
       updateRings()
