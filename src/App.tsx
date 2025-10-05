@@ -4,10 +4,12 @@ import Footer from './components/Footer'
 import NEOBrowser from './components/NEOBrowser'
 import ImpactParameters from './components/ImpactParameters'
 import OrbitVisualization, { OrbitVisualizationHandle } from './components/OrbitVisualization'
+import OrbitalMechanicsExplainers from './components/OrbitalMechanicsExplainers'
 import ImpactMap, { ImpactMapHandle } from './components/ImpactMap'
 import NEOScenarioSummary from './components/NEOScenarioSummary'
 import PreparednessModal from './components/PreparednessModal'
 import MitigationStrategies from './components/MitigationStrategies'
+import TabbedPanel from './components/TabbedPanel'
 import type { OrbitalData, ImpactParams, ImpactResults, NEO } from './types'
 import { mergeImpactParams, normalizeImpactParams } from './utils/validation'
 import { analyzeGeology, adjustImpactResults } from './utils/geology'
@@ -184,6 +186,89 @@ function App() {
     }
   }, [selectedNEO, impactParams, impactLocation])
 
+  // Define tabs for the right panel
+  const rightPanelTabs = [
+    {
+      id: '3d-orbit',
+      label: '3D Orbit (animated)',
+      content: (
+        <div className="space-y-6">
+          <OrbitVisualization
+            ref={orbitRef}
+            orbitalData={orbitalData}
+            impactDate={selectedNEO?.impact_scenario?.impact_date ?? null}
+            asteroidName={selectedNEO?.name ?? null}
+          />
+          <OrbitalMechanicsExplainers orbitalData={orbitalData} />
+        </div>
+      ),
+    },
+    {
+      id: 'enhanced-geology',
+      label: 'Enhanced USGS Geology',
+      content: (
+        <GeologyInsights
+          assessment={geologyAssessment}
+          adjustedResults={adjustedImpactResults}
+        />
+      ),
+    },
+    {
+      id: 'impact-map',
+      label: 'Impact Map',
+      content: (
+        <ImpactMap
+          ref={mapRef}
+          location={impactLocation}
+          results={impactResults}
+          adjustedResults={adjustedImpactResults}
+          onLocationSelect={handleLocationSelect}
+        />
+      ),
+    },
+    {
+      id: 'scenario-focus',
+      label: 'Scenario Focus',
+      content: (
+        <NEOScenarioSummary
+          neo={selectedNEO}
+          impactResults={impactResults}
+          adjustedResults={adjustedImpactResults}
+          geology={geologyAssessment}
+          location={impactLocation}
+        />
+      ),
+    },
+    {
+      id: 'impact-parameters',
+      label: 'Impact Parameters',
+      content: (
+        <ImpactParameters
+          params={impactParams}
+          onParamsChange={(next) => setImpactParams(normalizeImpactParams(next))}
+          onCalculate={handleImpactCalculation}
+        />
+      ),
+    },
+    {
+      id: 'export-sharing',
+      label: 'Export & Sharing',
+      content: (
+        <ExportSharePanel
+          neo={selectedNEO}
+          impactParams={impactParams}
+          impactResults={impactResults}
+          adjustedResults={adjustedImpactResults}
+          geology={geologyAssessment}
+          location={impactLocation}
+          orbitalData={orbitalData}
+          orbitHandle={orbitRef.current}
+          mapHandle={mapRef.current}
+        />
+      ),
+    },
+  ]
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header
@@ -191,8 +276,9 @@ function App() {
         onTutorialClick={() => setTutorialOpen(true)}
       />
       <main className="flex-1 w-full">
-        <div className="mx-auto flex w-full max-w-[1500px] flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10">
-          <div className="flex flex-col gap-6 xl:grid xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(0,400px)_minmax(0,1.3fr)] xl:items-start">
+        <div className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10">
+          <div className="flex flex-col gap-6 xl:grid xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(0,400px)_minmax(0,1fr)] xl:items-start">
+            {/* Left Panel - Browse NEOs and Impact Scenario Library */}
             <aside className="flex flex-col gap-6 xl:sticky xl:top-28 xl:max-h-[calc(100vh-8rem)] xl:overflow-y-auto xl:pr-3">
               <section className="panel rounded-2xl p-5">
                 <NEOBrowser
@@ -207,62 +293,15 @@ function App() {
                   onSelectScenario={handleScenarioLoad}
                 />
               </section>
-              <section className="panel rounded-2xl p-5">
-                <NEOScenarioSummary
-                  neo={selectedNEO}
-                  impactResults={impactResults}
-                  adjustedResults={adjustedImpactResults}
-                  geology={geologyAssessment}
-                  location={impactLocation}
-                />
-              </section>
-              <section className="panel rounded-2xl p-5">
-                <ImpactParameters
-                  params={impactParams}
-                  onParamsChange={(next) => setImpactParams(normalizeImpactParams(next))}
-                  onCalculate={handleImpactCalculation}
-                />
-              </section>
-              <section className="panel rounded-2xl p-5">
-                <GeologyInsights
-                  assessment={geologyAssessment}
-                  adjustedResults={adjustedImpactResults}
-                />
-              </section>
-              <section className="panel rounded-2xl p-5">
-                <ExportSharePanel
-                  neo={selectedNEO}
-                  impactParams={impactParams}
-                  impactResults={impactResults}
-                  adjustedResults={adjustedImpactResults}
-                  geology={geologyAssessment}
-                  location={impactLocation}
-                  orbitalData={orbitalData}
-                  orbitHandle={orbitRef.current}
-                  mapHandle={mapRef.current}
-                />
-              </section>
             </aside>
+
+            {/* Right Panel - Tabbed Content */}
             <section className="flex flex-col gap-6 min-w-0">
-              <div className="panel rounded-2xl p-5">
-                <OrbitVisualization
-                  ref={orbitRef}
-                  orbitalData={orbitalData}
-                  impactDate={selectedNEO?.impact_scenario?.impact_date ?? null}
-                  asteroidName={selectedNEO?.name ?? null}
-                />
-              </div>
-              <div className="panel rounded-2xl p-5">
-                <ImpactMap
-                  ref={mapRef}
-                  location={impactLocation}
-                  results={impactResults}
-                  adjustedResults={adjustedImpactResults}
-                  onLocationSelect={handleLocationSelect}
-                />
-              </div>
+              <TabbedPanel tabs={rightPanelTabs} />
             </section>
           </div>
+          
+          {/* Mitigation Strategies - Full width below */}
           <MitigationStrategies neo={selectedNEO} className="xl:p-6" />
         </div>
       </main>
