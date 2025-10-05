@@ -50,6 +50,20 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
     const earthSpeedRef = useRef(1)
     const earthDirRef = useRef(1)
     const impactPauseRef = useRef(false)
+    const simulatedElapsedRef = useRef(0)
+    const baseImpactDiffRef = useRef<number | null>(null)
+    const lastLabelUpdateRef = useRef(0)
+
+    const languageRef = useRef(language)
+    const translateRef = useRef(t)
+
+    useEffect(() => {
+      languageRef.current = language
+    }, [language])
+
+    useEffect(() => {
+      translateRef.current = t
+    }, [t])
 
     const [timeScale, setTimeScale] = useState(2000000)
     const [isRealTime, setIsRealTime] = useState(false)
@@ -68,7 +82,7 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
       return Number.isNaN(parsed.getTime()) ? null : parsed
     }, [impactDate])
 
-    const formatTimeRemaining = (ms: number) => {
+    const formatTimeRemaining = (ms: number, lang: string) => {
       const totalSeconds = Math.max(0, Math.floor(ms / 1000))
       const days = Math.floor(totalSeconds / 86400)
       const hours = Math.floor((totalSeconds % 86400) / 3600)
@@ -77,15 +91,15 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
 
       const parts: string[] = []
       if (days > 0) {
-        parts.push(`${days}${language === 'es' ? 'd' : 'd'}`)
+        parts.push(`${days}${lang === 'es' ? 'd' : 'd'}`)
       }
       if (hours > 0 || parts.length > 0) {
-        parts.push(`${hours}${language === 'es' ? 'h' : 'h'}`)
+        parts.push(`${hours}${lang === 'es' ? 'h' : 'h'}`)
       }
       if (minutes > 0 || parts.length > 0) {
-        parts.push(`${minutes}${language === 'es' ? 'm' : 'm'}`)
+        parts.push(`${minutes}${lang === 'es' ? 'm' : 'm'}`)
       }
-      parts.push(`${seconds}${language === 'es' ? 's' : 's'}`)
+      parts.push(`${seconds}${lang === 'es' ? 's' : 's'}`)
 
       return parts.join(' ')
     }
@@ -199,6 +213,27 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
           }
         }
 
+        if (!impactPauseRef.current) {
+          simulatedElapsedRef.current += dt * timeScaleRef.current * 1000
+        }
+
+        if (baseImpactDiffRef.current != null) {
+          const remaining = baseImpactDiffRef.current - simulatedElapsedRef.current
+          const nowTime = performance.now()
+          if (nowTime - lastLabelUpdateRef.current >= 100) {
+            lastLabelUpdateRef.current = nowTime
+            if (remaining <= 0) {
+              if (!impactPauseRef.current) {
+                impactPauseRef.current = true
+                setImpactPaused(true)
+              }
+              setTimeRemainingLabel(translateRef.current('orbitViz.impactNow'))
+            } else {
+              setTimeRemainingLabel(formatTimeRemaining(remaining, languageRef.current))
+            }
+          }
+        }
+
         controls.update()
         renderer.render(scene, camera)
       }
@@ -285,11 +320,15 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
     useEffect(() => {
       impactPauseRef.current = false
       setImpactPaused(false)
+      simulatedElapsedRef.current = 0
+      lastLabelUpdateRef.current = 0
     }, [orbitalData])
 
     useEffect(() => {
       impactPauseRef.current = false
       setImpactPaused(false)
+      simulatedElapsedRef.current = 0
+      lastLabelUpdateRef.current = 0
     }, [parsedImpactDate])
 
     // Update orbit when orbitalData changes
@@ -328,6 +367,8 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
       }
       impactPauseRef.current = false
       setImpactPaused(false)
+      simulatedElapsedRef.current = 0
+      lastLabelUpdateRef.current = 0
     }
 
     useImperativeHandle(
@@ -349,30 +390,48 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
 
     useEffect(() => {
       if (!parsedImpactDate) {
+        baseImpactDiffRef.current = null
+        simulatedElapsedRef.current = 0
+        lastLabelUpdateRef.current = 0
         setTimeRemainingLabel(null)
         return
       }
 
-      const updateCountdown = () => {
-        const diff = parsedImpactDate.getTime() - Date.now()
-        if (diff <= 0) {
-          setTimeRemainingLabel(t('orbitViz.impactNow'))
-          if (!impactPauseRef.current) {
-            impactPauseRef.current = true
-            setImpactPaused(true)
-          }
-        } else {
-          setTimeRemainingLabel(formatTimeRemaining(diff))
-        }
+      baseImpactDiffRef.current = parsedImpactDate.getTime() - Date.now()
+      simulatedElapsedRef.current = 0
+      lastLabelUpdateRef.current = 0
+
+      const initialDiff = baseImpactDiffRef.current
+      if (initialDiff <= 0) {
+        setTimeRemainingLabel(translateRef.current('orbitViz.impactNow'))
+        impactPauseRef.current = true
+        setImpactPaused(true)
+      } else {
+        setTimeRemainingLabel(formatTimeRemaining(initialDiff, languageRef.current))
+      }
+    }, [parsedImpactDate])
+
+    useEffect(() => {
+      if (baseImpactDiffRef.current == null) {
+        return
       }
 
-      updateCountdown()
-      const interval = window.setInterval(updateCountdown, 1000)
-      return () => window.clearInterval(interval)
-    }, [parsedImpactDate, t, language])
+      const remaining = baseImpactDiffRef.current - simulatedElapsedRef.current
+      if (remaining <= 0) {
+        setTimeRemainingLabel(t('orbitViz.impactNow'))
+      } else {
+        setTimeRemainingLabel(formatTimeRemaining(remaining, language))
+      }
+    }, [language, t])
 
     const handleRealTimeToggle = () => {
       setIsRealTime((prev) => !prev)
+      if (!isRealTime && parsedImpactDate) {
+        // Sync baseline diff when entering real-time mode
+        baseImpactDiffRef.current = parsedImpactDate.getTime() - Date.now()
+        simulatedElapsedRef.current = 0
+        lastLabelUpdateRef.current = 0
+      }
     }
 
     const handleResume = () => {
