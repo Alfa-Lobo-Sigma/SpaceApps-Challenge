@@ -8,6 +8,10 @@ import {
 } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import {
+  CSS2DObject,
+  CSS2DRenderer,
+} from 'three/examples/jsm/renderers/CSS2DRenderer.js'
 import type { OrbitalData } from '../types'
 import {
   generateOrbitPoints,
@@ -43,6 +47,11 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
     const orbitLineRef = useRef<THREE.Line | null>(null)
     const asteroidMarkerRef = useRef<THREE.Mesh | null>(null)
     const earthMarkerRef = useRef<THREE.Mesh | null>(null)
+    const labelRendererRef = useRef<CSS2DRenderer | null>(null)
+    const earthLabelObjectRef = useRef<CSS2DObject | null>(null)
+    const asteroidLabelObjectRef = useRef<CSS2DObject | null>(null)
+    const earthLabelElementRef = useRef<HTMLDivElement | null>(null)
+    const asteroidLabelElementRef = useRef<HTMLDivElement | null>(null)
     const currentOrbitRef = useRef<OrbitalData | null>(null)
     const asteroidMRef = useRef(0)
     const earthMRef = useRef(0)
@@ -129,6 +138,18 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
       containerRef.current.appendChild(renderer.domElement)
       rendererRef.current = renderer
 
+      const labelRenderer = new CSS2DRenderer()
+      labelRenderer.setSize(
+        containerRef.current.clientWidth,
+        containerRef.current.clientHeight
+      )
+      labelRenderer.domElement.style.position = 'absolute'
+      labelRenderer.domElement.style.top = '0'
+      labelRenderer.domElement.style.left = '0'
+      labelRenderer.domElement.style.pointerEvents = 'none'
+      containerRef.current.appendChild(labelRenderer.domElement)
+      labelRendererRef.current = labelRenderer
+
       const controls = new OrbitControls(camera, renderer.domElement)
       controlsRef.current = controls
 
@@ -157,12 +178,30 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
       scene.add(earthMarker)
       earthMarkerRef.current = earthMarker
 
+      const earthLabelElement = document.createElement('div')
+      earthLabelElement.className = 'orbit-label'
+      earthLabelElement.textContent = translateRef.current('orbitViz.earth')
+      earthLabelElementRef.current = earthLabelElement
+      const earthLabelObject = new CSS2DObject(earthLabelElement)
+      earthLabelObject.position.set(0, 0.12, 0)
+      earthMarker.add(earthLabelObject)
+      earthLabelObjectRef.current = earthLabelObject
+
       // Asteroid marker
       const asteroidGeometry = new THREE.SphereGeometry(0.025, 18, 9)
       const asteroidMaterial = new THREE.MeshBasicMaterial({ color: 0x64d2ff })
       const asteroidMarker = new THREE.Mesh(asteroidGeometry, asteroidMaterial)
       scene.add(asteroidMarker)
       asteroidMarkerRef.current = asteroidMarker
+
+      const asteroidLabelElement = document.createElement('div')
+      asteroidLabelElement.className = 'orbit-label'
+      asteroidLabelElement.textContent = translateRef.current('orbitViz.asteroid')
+      asteroidLabelElementRef.current = asteroidLabelElement
+      const asteroidLabelObject = new CSS2DObject(asteroidLabelElement)
+      asteroidLabelObject.position.set(0, 0.12, 0)
+      asteroidMarker.add(asteroidLabelObject)
+      asteroidLabelObjectRef.current = asteroidLabelObject
 
       // Set default orbit
       updateOrbit(getDefaultOrbit())
@@ -245,6 +284,7 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
 
         controls.update()
         renderer.render(scene, camera)
+        labelRenderer.render(scene, camera)
       }
       animate()
 
@@ -256,6 +296,7 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
         rendererRef.current.setSize(width, height)
         cameraRef.current.aspect = width / height
         cameraRef.current.updateProjectionMatrix()
+        labelRendererRef.current?.setSize(width, height)
       }
       window.addEventListener('resize', handleResize)
 
@@ -278,6 +319,28 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
         earthMaterial.dispose()
         asteroidGeometry.dispose()
         asteroidMaterial.dispose()
+
+        if (earthLabelObjectRef.current && earthMarkerRef.current) {
+          earthMarkerRef.current.remove(earthLabelObjectRef.current)
+          earthLabelObjectRef.current = null
+        }
+
+        if (asteroidLabelObjectRef.current && asteroidMarkerRef.current) {
+          asteroidMarkerRef.current.remove(asteroidLabelObjectRef.current)
+          asteroidLabelObjectRef.current = null
+        }
+
+        if (labelRendererRef.current) {
+          if (
+            containerRef.current?.contains(labelRendererRef.current.domElement)
+          ) {
+            containerRef.current.removeChild(labelRendererRef.current.domElement)
+          }
+          labelRendererRef.current = null
+        }
+
+        earthLabelElementRef.current = null
+        asteroidLabelElementRef.current = null
 
         // Dispose orbit line if exists
         if (orbitLineRef.current) {
@@ -396,6 +459,15 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
       }),
       []
     )
+
+    useEffect(() => {
+      if (earthLabelElementRef.current) {
+        earthLabelElementRef.current.textContent = t('orbitViz.earth')
+      }
+      if (asteroidLabelElementRef.current) {
+        asteroidLabelElementRef.current.textContent = t('orbitViz.asteroid')
+      }
+    }, [language, t])
 
     useEffect(() => {
       if (!parsedImpactDate) {
@@ -549,7 +621,7 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
         </div>
         <div
           ref={containerRef}
-          className="w-full h-64 md:h-80 lg:h-[28rem] rounded-xl border border-white/10"
+          className="relative w-full h-64 md:h-80 lg:h-[28rem] rounded-xl border border-white/10"
         />
         <OrbitalMechanicsExplainers orbitalData={orbitalData} />
       </div>
