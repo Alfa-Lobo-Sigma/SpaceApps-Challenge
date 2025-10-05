@@ -138,7 +138,13 @@ const translations: Record<Language, any> = {
     },
     impactMap: {
       title: 'Impact Map',
-      description: 'OSM basemap; click to set impact location. Orange ring = devastation radius, Red ring = crater radius.'
+      description: 'OSM basemap; click to set impact location. Orange ring = devastation radius, Red ring = crater radius.',
+      affectedAreas: 'Affected Areas',
+      loadingCities: 'Loading affected cities...',
+      citiesInRange: 'Cities and municipalities within devastation radius:',
+      noCitiesFound: 'No cities found in the affected area.',
+      estimatedDeathToll: 'Estimated Death Toll',
+      deathTollNote: 'Based on city populations and proximity to impact. Actual casualties may vary.'
     }
   },
   es: {
@@ -231,7 +237,13 @@ const translations: Record<Language, any> = {
     },
     impactMap: {
       title: 'Mapa de Impacto',
-      description: 'Mapa base OSM; haz clic para establecer ubicación del impacto. Anillo naranja = radio de devastación, Anillo rojo = radio del cráter.'
+      description: 'Mapa base OSM; haz clic para establecer ubicación del impacto. Anillo naranja = radio de devastación, Anillo rojo = radio del cráter.',
+      affectedAreas: 'Áreas Afectadas',
+      loadingCities: 'Cargando ciudades afectadas...',
+      citiesInRange: 'Ciudades y municipios dentro del radio de devastación:',
+      noCitiesFound: 'No se encontraron ciudades en el área afectada.',
+      estimatedDeathToll: 'Víctimas Mortales Estimadas',
+      deathTollNote: 'Basado en poblaciones urbanas y proximidad al impacto. Las víctimas reales pueden variar.'
     }
   }
 }
