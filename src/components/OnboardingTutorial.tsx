@@ -19,8 +19,19 @@ const STEPS = [
     ],
   },
   {
+    id: 'read-data',
+    title: '2 — Read and interpret key parameters',
+    description:
+      "Open the object's detail drawer to inspect magnitudes, close-approach tables, and orbital elements. The data view mirrors NASA NeoWs field names so analysts can cross-check against the source API.",
+    bullets: [
+      'Hover over each metric to reveal contextual tooltips that summarize what the value means operationally.',
+      'Toggle between historical and upcoming approaches to understand when and where the object gets closest to Earth.',
+      'Download the raw JSON payload from the Export panel for deeper offline analysis or spreadsheet ingestion.',
+    ],
+  },
+  {
     id: 'impact-physics',
-    title: '2 — Tune impact physics parameters',
+    title: '3 — Tune impact physics parameters',
     description:
       'Diameter, velocity, density, and surface type feed a fast estimator. Hover over the new physics tooltips to understand how each factor affects energy release and crater size.',
     bullets: [
@@ -31,7 +42,7 @@ const STEPS = [
   },
   {
     id: 'visualize',
-    title: '3 — Visualize and brief',
+    title: '4 — Visualize and brief',
     description:
       'The 3D orbit view now includes explainer cards for orbital mechanics. Map rings show devastation vs. crater radius; drag to test alternate impact points or load another scenario.',
     bullets: [
