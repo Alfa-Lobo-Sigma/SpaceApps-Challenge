@@ -20,6 +20,9 @@ import {
 import { useLanguage } from '../contexts/LanguageContext'
 import OrbitalMechanicsExplainers from './OrbitalMechanicsExplainers'
 
+const TWO_PI = Math.PI * 2
+const DAY_MS = 86400000
+
 export interface OrbitVisualizationHandle {
   exportImage: () => Promise<Blob | null>
 }
@@ -196,11 +199,17 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
 
         if (!impactPauseRef.current && currentOrbitRef.current && asteroidMarkerRef.current) {
           const n = getMeanMotion(currentOrbitRef.current.a)
-          asteroidMRef.current +=
+          const deltaM =
             astroDirRef.current * astroSpeedRef.current * n * dt * timeScaleRef.current
+          asteroidMRef.current += deltaM
           const nu = trueAnomalyFromMean(asteroidMRef.current, currentOrbitRef.current.e)
           const pos = positionOnOrbit(nu, currentOrbitRef.current)
           asteroidMarkerRef.current.position.copy(pos)
+
+          let deltaTimeMs = (deltaM / TWO_PI) * DAY_MS
+          if (!Number.isFinite(deltaTimeMs)) {
+            deltaTimeMs = 0
+          }
 
           if (earthMarkerInstance) {
             const distance = asteroidMarkerRef.current.position.distanceTo(
@@ -211,10 +220,10 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
               setImpactPaused(true)
             }
           }
-        }
 
-        if (!impactPauseRef.current) {
-          simulatedElapsedRef.current += dt * timeScaleRef.current * 1000
+          if (!impactPauseRef.current) {
+            simulatedElapsedRef.current += deltaTimeMs
+          }
         }
 
         if (baseImpactDiffRef.current != null) {
