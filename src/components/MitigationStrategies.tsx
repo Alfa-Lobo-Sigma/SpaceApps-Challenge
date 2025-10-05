@@ -76,15 +76,31 @@ const formatTimeRemaining = (impactDate: Date | null) => {
     }
   }
 
-  const totalDays = Math.round(diffMs / (1000 * 60 * 60 * 24))
+  const totalMinutes = Math.floor(diffMs / (1000 * 60))
+  const minutesPerDay = 60 * 24
+  const totalDays = Math.floor(totalMinutes / minutesPerDay)
   const years = Math.floor(totalDays / 365.25)
   const months = Math.floor((totalDays % 365.25) / 30.4375)
-  const days = Math.max(totalDays - Math.round(years * 365.25) - Math.round(months * 30.4375), 0)
+  const days = Math.max(totalDays - Math.floor(years * 365.25) - Math.floor(months * 30.4375), 0)
+  const remainingMinutes = totalMinutes - totalDays * minutesPerDay
+  const hours = Math.floor(remainingMinutes / 60)
+  const minutes = Math.max(remainingMinutes % 60, 0)
 
-  const parts = []
+  const parts: string[] = []
   if (years) parts.push(`${years} year${years === 1 ? '' : 's'}`)
   if (months) parts.push(`${months} month${months === 1 ? '' : 's'}`)
-  if (days || parts.length === 0) parts.push(`${days} day${days === 1 ? '' : 's'}`)
+  if (days) parts.push(`${days} day${days === 1 ? '' : 's'}`)
+
+  if (parts.length === 0) {
+    if (hours) {
+      parts.push(`${hours} hour${hours === 1 ? '' : 's'}`)
+    }
+    if (minutes || parts.length === 0) {
+      parts.push(`${minutes} minute${minutes === 1 ? '' : 's'}`)
+    }
+  } else if (hours && parts.length < 3) {
+    parts.push(`${hours} hour${hours === 1 ? '' : 's'}`)
+  }
 
   return {
     label: parts.join(', '),
