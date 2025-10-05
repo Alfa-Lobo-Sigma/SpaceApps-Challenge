@@ -322,6 +322,10 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
 
       currentOrbitRef.current = orbit
       asteroidMRef.current = 0 // reset position
+      earthMRef.current = 0
+      if (earthMarkerRef.current) {
+        earthMarkerRef.current.position.set(1, 0, 0)
+      }
       impactPauseRef.current = false
       setImpactPaused(false)
     }
