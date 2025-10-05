@@ -1,4 +1,11 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import type { OrbitalData } from '../types'
@@ -8,7 +15,7 @@ import {
   positionOnOrbit,
   getMeanMotion,
   EARTH_MEAN_MOTION,
-  getDefaultOrbit
+  getDefaultOrbit,
 } from '../utils/orbital'
 import { useLanguage } from '../contexts/LanguageContext'
 import OrbitalMechanicsExplainers from './OrbitalMechanicsExplainers'
@@ -19,11 +26,12 @@ export interface OrbitVisualizationHandle {
 
 interface OrbitVisualizationProps {
   orbitalData: OrbitalData | null
+  impactDate?: string | null
 }
 
 const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizationProps>(
-  ({ orbitalData }, ref) => {
-    const { t } = useLanguage()
+  ({ orbitalData, impactDate }, ref) => {
+    const { t, language } = useLanguage()
     const containerRef = useRef<HTMLDivElement>(null)
     const sceneRef = useRef<THREE.Scene | null>(null)
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
@@ -41,12 +49,46 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
     const astroDirRef = useRef(1)
     const earthSpeedRef = useRef(1)
     const earthDirRef = useRef(1)
+    const impactPauseRef = useRef(false)
 
     const [timeScale, setTimeScale] = useState(2000000)
+    const [isRealTime, setIsRealTime] = useState(false)
     const [astroSpeed, setAstroSpeed] = useState(1)
     const [astroDir, setAstroDir] = useState(1)
     const [earthSpeed, setEarthSpeed] = useState(1)
     const [earthDir, setEarthDir] = useState(1)
+    const [isImpactPaused, setImpactPaused] = useState(false)
+    const [timeRemainingLabel, setTimeRemainingLabel] = useState<string | null>(null)
+
+    const parsedImpactDate = useMemo(() => {
+      if (!impactDate) {
+        return null
+      }
+      const parsed = new Date(impactDate)
+      return Number.isNaN(parsed.getTime()) ? null : parsed
+    }, [impactDate])
+
+    const formatTimeRemaining = (ms: number) => {
+      const totalSeconds = Math.max(0, Math.floor(ms / 1000))
+      const days = Math.floor(totalSeconds / 86400)
+      const hours = Math.floor((totalSeconds % 86400) / 3600)
+      const minutes = Math.floor((totalSeconds % 3600) / 60)
+      const seconds = totalSeconds % 60
+
+      const parts: string[] = []
+      if (days > 0) {
+        parts.push(`${days}${language === 'es' ? 'd' : 'd'}`)
+      }
+      if (hours > 0 || parts.length > 0) {
+        parts.push(`${hours}${language === 'es' ? 'h' : 'h'}`)
+      }
+      if (minutes > 0 || parts.length > 0) {
+        parts.push(`${minutes}${language === 'es' ? 'm' : 'm'}`)
+      }
+      parts.push(`${seconds}${language === 'es' ? 's' : 's'}`)
+
+      return parts.join(' ')
+    }
 
     // Initialize scene
     useEffect(() => {
@@ -121,27 +163,40 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
         const dt = Math.min(0.1, (now - lastTimeRef.current) / 1000)
         lastTimeRef.current = now
 
-        // Update Earth position
-        earthMRef.current +=
-          earthDirRef.current *
-          earthSpeedRef.current *
-          EARTH_MEAN_MOTION *
-          dt *
-          timeScaleRef.current
-        earthMarker.position.set(
-          Math.cos(earthMRef.current),
-          0,
-          Math.sin(earthMRef.current)
-        )
+        const earthMarkerInstance = earthMarkerRef.current
+        if (earthMarkerInstance) {
+          if (!impactPauseRef.current) {
+            earthMRef.current +=
+              earthDirRef.current *
+              earthSpeedRef.current *
+              EARTH_MEAN_MOTION *
+              dt *
+              timeScaleRef.current
+            earthMarkerInstance.position.set(
+              Math.cos(earthMRef.current),
+              0,
+              Math.sin(earthMRef.current)
+            )
+          }
+        }
 
-        // Update asteroid position
-        if (currentOrbitRef.current && asteroidMarkerRef.current) {
+        if (!impactPauseRef.current && currentOrbitRef.current && asteroidMarkerRef.current) {
           const n = getMeanMotion(currentOrbitRef.current.a)
           asteroidMRef.current +=
             astroDirRef.current * astroSpeedRef.current * n * dt * timeScaleRef.current
           const nu = trueAnomalyFromMean(asteroidMRef.current, currentOrbitRef.current.e)
           const pos = positionOnOrbit(nu, currentOrbitRef.current)
           asteroidMarkerRef.current.position.copy(pos)
+
+          if (earthMarkerInstance) {
+            const distance = asteroidMarkerRef.current.position.distanceTo(
+              earthMarkerInstance.position
+            )
+            if (distance <= 0.05 && !impactPauseRef.current) {
+              impactPauseRef.current = true
+              setImpactPaused(true)
+            }
+          }
         }
 
         controls.update()
@@ -205,11 +260,12 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
       }
     }, [])
 
-    // Update animation parameters
     useEffect(() => {
-      timeScaleRef.current = timeScale
-    }, [timeScale])
+      const effectiveScale = isRealTime ? 1 : timeScale
+      timeScaleRef.current = effectiveScale
+    }, [isRealTime, timeScale])
 
+    // Update animation parameters
     useEffect(() => {
       astroSpeedRef.current = astroSpeed
     }, [astroSpeed])
@@ -225,6 +281,16 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
     useEffect(() => {
       earthDirRef.current = earthDir
     }, [earthDir])
+
+    useEffect(() => {
+      impactPauseRef.current = false
+      setImpactPaused(false)
+    }, [orbitalData])
+
+    useEffect(() => {
+      impactPauseRef.current = false
+      setImpactPaused(false)
+    }, [parsedImpactDate])
 
     // Update orbit when orbitalData changes
     useEffect(() => {
@@ -256,6 +322,8 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
 
       currentOrbitRef.current = orbit
       asteroidMRef.current = 0 // reset position
+      impactPauseRef.current = false
+      setImpactPaused(false)
     }
 
     useImperativeHandle(
@@ -275,9 +343,70 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
       []
     )
 
+    useEffect(() => {
+      if (!parsedImpactDate) {
+        setTimeRemainingLabel(null)
+        return
+      }
+
+      const updateCountdown = () => {
+        const diff = parsedImpactDate.getTime() - Date.now()
+        if (diff <= 0) {
+          setTimeRemainingLabel(t('orbitViz.impactNow'))
+          if (!impactPauseRef.current) {
+            impactPauseRef.current = true
+            setImpactPaused(true)
+          }
+        } else {
+          setTimeRemainingLabel(formatTimeRemaining(diff))
+        }
+      }
+
+      updateCountdown()
+      const interval = window.setInterval(updateCountdown, 1000)
+      return () => window.clearInterval(interval)
+    }, [parsedImpactDate, t, language])
+
+    const handleRealTimeToggle = () => {
+      setIsRealTime((prev) => !prev)
+    }
+
+    const handleResume = () => {
+      impactPauseRef.current = false
+      setImpactPaused(false)
+      lastTimeRef.current = performance.now()
+    }
+
     return (
       <div className="space-y-3">
-        <h2 className="text-base sm:text-lg font-semibold">{t('orbitViz.title')}</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <h2 className="text-base sm:text-lg font-semibold">{t('orbitViz.title')}</h2>
+          <div className="text-xs sm:text-sm text-white/70">
+            {parsedImpactDate ? (
+              <span>
+                {t('orbitViz.timeRemaining')}{' '}
+                <span className="font-semibold text-emerald-300">
+                  {timeRemainingLabel ?? '—'}
+                </span>
+              </span>
+            ) : (
+              <span>{t('orbitViz.timeRemainingUnknown')}</span>
+            )}
+          </div>
+        </div>
+        <p className="text-[11px] sm:text-xs text-white/50">{t('orbitViz.controls')}</p>
+        {isImpactPaused && (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs sm:text-sm text-amber-200">
+            <span>{t('orbitViz.impactPaused')}</span>
+            <button
+              type="button"
+              onClick={handleResume}
+              className="rounded-md border border-amber-300/60 bg-amber-400/20 px-3 py-1 text-xs font-semibold text-amber-100 transition hover:bg-amber-400/30"
+            >
+              {t('orbitViz.resume')}
+            </button>
+          </div>
+        )}
         <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-3 items-start sm:items-center text-xs sm:text-sm mb-2">
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <span className="label whitespace-nowrap">{t('orbitViz.timeScale')}</span>
@@ -287,10 +416,23 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
               max="50000000"
               step="1000"
               value={timeScale}
-              onChange={(e) => setTimeScale(Number(e.target.value))}
+              disabled={isRealTime}
+              onChange={(e) => {
+                setIsRealTime(false)
+                setTimeScale(Number(e.target.value))
+              }}
               className="flex-1 sm:w-32 lg:w-56"
             />
-            <span className="label text-[10px] sm:text-xs whitespace-nowrap">{timeScale.toLocaleString()}×</span>
+            <span className="label text-[10px] sm:text-xs whitespace-nowrap">
+              {isRealTime ? t('orbitViz.realTimeActive') : `${timeScale.toLocaleString()}×`}
+            </span>
+            <button
+              type="button"
+              onClick={handleRealTimeToggle}
+              className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[10px] sm:text-xs transition hover:bg-white/10"
+            >
+              {isRealTime ? t('orbitViz.exitRealTime') : t('orbitViz.realTime')}
+            </button>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <span className="label whitespace-nowrap min-w-[60px]">{t('orbitViz.asteroid')}</span>
@@ -341,7 +483,7 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
       </div>
     )
   }
-);
+)
 
 OrbitVisualization.displayName = 'OrbitVisualization'
 

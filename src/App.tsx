@@ -190,55 +190,80 @@ function App() {
         onPreparednessClick={() => setPreparednessOpen(true)}
         onTutorialClick={() => setTutorialOpen(true)}
       />
-      <main className="max-w-7xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1">
-        <section className="panel rounded-2xl p-4 space-y-4">
-          <NEOBrowser
-            onNEOSelect={handleNEOSelect}
-            onParamsUpdate={handleParamsUpdate}
-            initialNEOId={initialShare?.neoId ?? null}
-          />
-          <ImpactScenarioLibrary
-            scenarios={IMPACT_SCENARIOS}
-            onSelectScenario={handleScenarioLoad}
-          />
-          <NEOScenarioSummary
-            neo={selectedNEO}
-            impactResults={impactResults}
-            adjustedResults={adjustedImpactResults}
-            geology={geologyAssessment}
-            location={impactLocation}
-          />
-          <ImpactParameters
-            params={impactParams}
-            onParamsChange={(next) => setImpactParams(normalizeImpactParams(next))}
-            onCalculate={handleImpactCalculation}
-          />
-          <GeologyInsights assessment={geologyAssessment} adjustedResults={adjustedImpactResults} />
-          <ExportSharePanel
-            neo={selectedNEO}
-            impactParams={impactParams}
-            impactResults={impactResults}
-            adjustedResults={adjustedImpactResults}
-            geology={geologyAssessment}
-            location={impactLocation}
-            orbitalData={orbitalData}
-            orbitHandle={orbitRef.current}
-            mapHandle={mapRef.current}
-          />
-        </section>
-
-        <section className="panel rounded-2xl p-4 space-y-3 lg:col-span-2">
-          <OrbitVisualization ref={orbitRef} orbitalData={orbitalData} />
-          <ImpactMap
-            ref={mapRef}
-            location={impactLocation}
-            results={impactResults}
-            adjustedResults={adjustedImpactResults}
-            onLocationSelect={handleLocationSelect}
-          />
-        </section>
-
-        <MitigationStrategies neo={selectedNEO} className="lg:col-span-3" />
+      <main className="flex-1 w-full">
+        <div className="mx-auto flex w-full max-w-[1500px] flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10">
+          <div className="flex flex-col gap-6 xl:grid xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(0,400px)_minmax(0,1.3fr)] xl:items-start">
+            <aside className="flex flex-col gap-6 xl:sticky xl:top-28 xl:max-h-[calc(100vh-8rem)] xl:overflow-y-auto xl:pr-3">
+              <section className="panel rounded-2xl p-5">
+                <NEOBrowser
+                  onNEOSelect={handleNEOSelect}
+                  onParamsUpdate={handleParamsUpdate}
+                  initialNEOId={initialShare?.neoId ?? null}
+                />
+              </section>
+              <section className="panel rounded-2xl p-5">
+                <ImpactScenarioLibrary
+                  scenarios={IMPACT_SCENARIOS}
+                  onSelectScenario={handleScenarioLoad}
+                />
+              </section>
+              <section className="panel rounded-2xl p-5">
+                <NEOScenarioSummary
+                  neo={selectedNEO}
+                  impactResults={impactResults}
+                  adjustedResults={adjustedImpactResults}
+                  geology={geologyAssessment}
+                  location={impactLocation}
+                />
+              </section>
+              <section className="panel rounded-2xl p-5">
+                <ImpactParameters
+                  params={impactParams}
+                  onParamsChange={(next) => setImpactParams(normalizeImpactParams(next))}
+                  onCalculate={handleImpactCalculation}
+                />
+              </section>
+              <section className="panel rounded-2xl p-5">
+                <GeologyInsights
+                  assessment={geologyAssessment}
+                  adjustedResults={adjustedImpactResults}
+                />
+              </section>
+              <section className="panel rounded-2xl p-5">
+                <ExportSharePanel
+                  neo={selectedNEO}
+                  impactParams={impactParams}
+                  impactResults={impactResults}
+                  adjustedResults={adjustedImpactResults}
+                  geology={geologyAssessment}
+                  location={impactLocation}
+                  orbitalData={orbitalData}
+                  orbitHandle={orbitRef.current}
+                  mapHandle={mapRef.current}
+                />
+              </section>
+            </aside>
+            <section className="flex flex-col gap-6 min-w-0">
+              <div className="panel rounded-2xl p-5">
+                <OrbitVisualization
+                  ref={orbitRef}
+                  orbitalData={orbitalData}
+                  impactDate={selectedNEO?.impact_scenario?.impact_date ?? null}
+                />
+              </div>
+              <div className="panel rounded-2xl p-5">
+                <ImpactMap
+                  ref={mapRef}
+                  location={impactLocation}
+                  results={impactResults}
+                  adjustedResults={adjustedImpactResults}
+                  onLocationSelect={handleLocationSelect}
+                />
+              </div>
+            </section>
+          </div>
+          <MitigationStrategies neo={selectedNEO} className="xl:p-6" />
+        </div>
       </main>
       <Footer />
       <PreparednessModal open={isPreparednessOpen} onClose={() => setPreparednessOpen(false)} />

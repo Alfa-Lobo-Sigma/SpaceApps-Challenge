@@ -134,7 +134,15 @@ const translations: Record<Language, any> = {
       earth: 'Earth',
       forward: '⟲ forward',
       reverse: '⟳ reverse',
-      controls: 'Drag to rotate • Scroll to zoom'
+      controls: 'Drag to rotate • Scroll to zoom',
+      timeRemaining: 'Time until impact:',
+      timeRemainingUnknown: 'Impact time unavailable',
+      impactNow: 'Impact occurring now',
+      impactPaused: 'Impact detected — simulation paused.',
+      resume: 'Resume animation',
+      realTime: 'View in real time',
+      exitRealTime: 'Exit real time',
+      realTimeActive: 'Real-time mode'
     },
     impactMap: {
       title: 'Impact Map',
@@ -233,7 +241,15 @@ const translations: Record<Language, any> = {
       earth: 'Tierra',
       forward: '⟲ adelante',
       reverse: '⟳ reversa',
-      controls: 'Arrastra para rotar • Desplaza para zoom'
+      controls: 'Arrastra para rotar • Desplaza para zoom',
+      timeRemaining: 'Tiempo restante para el impacto:',
+      timeRemainingUnknown: 'Hora de impacto no disponible',
+      impactNow: 'Impacto en curso',
+      impactPaused: 'Impacto detectado — simulación en pausa.',
+      resume: 'Reanudar animación',
+      realTime: 'Ver en tiempo real',
+      exitRealTime: 'Salir de tiempo real',
+      realTimeActive: 'Modo en tiempo real'
     },
     impactMap: {
       title: 'Mapa de Impacto',
