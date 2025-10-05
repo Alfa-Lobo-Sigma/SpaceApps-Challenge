@@ -26,6 +26,10 @@ import OrbitalMechanicsExplainers from './OrbitalMechanicsExplainers'
 
 const TWO_PI = Math.PI * 2
 const DAY_MS = 86400000
+const EARTH_VISUAL_RADIUS = 0.03
+const ASTEROID_VISUAL_RADIUS = 0.025
+const IMPACT_DISTANCE_THRESHOLD =
+  EARTH_VISUAL_RADIUS + ASTEROID_VISUAL_RADIUS
 
 export interface OrbitVisualizationHandle {
   exportImage: () => Promise<Blob | null>
@@ -63,6 +67,7 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
     const earthSpeedRef = useRef(1)
     const earthDirRef = useRef(1)
     const impactPauseRef = useRef(false)
+    const proximityImpactRef = useRef(false)
     const simulatedElapsedRef = useRef(0)
     const baseImpactDiffRef = useRef<number | null>(null)
     const lastLabelUpdateRef = useRef(0)
@@ -173,7 +178,11 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
       scene.add(earthOrbit)
 
       // Earth marker
-      const earthGeometry = new THREE.SphereGeometry(0.03, 24, 12)
+      const earthGeometry = new THREE.SphereGeometry(
+        EARTH_VISUAL_RADIUS,
+        24,
+        12
+      )
       const earthMaterial = new THREE.MeshBasicMaterial({ color: 0x3b82f6 })
       const earthMarker = new THREE.Mesh(earthGeometry, earthMaterial)
       scene.add(earthMarker)
@@ -189,7 +198,11 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
       earthLabelObjectRef.current = earthLabelObject
 
       // Asteroid marker
-      const asteroidGeometry = new THREE.SphereGeometry(0.025, 18, 9)
+      const asteroidGeometry = new THREE.SphereGeometry(
+        ASTEROID_VISUAL_RADIUS,
+        18,
+        9
+      )
       const asteroidMaterial = new THREE.MeshBasicMaterial({ color: 0x64d2ff })
       const asteroidMarker = new THREE.Mesh(asteroidGeometry, asteroidMaterial)
       scene.add(asteroidMarker)
@@ -256,8 +269,13 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
             const distance = asteroidMarkerRef.current.position.distanceTo(
               earthMarkerInstance.position
             )
-            if (distance <= 0.05 && !impactPauseRef.current) {
+            if (
+              distance <= IMPACT_DISTANCE_THRESHOLD &&
+              !impactPauseRef.current &&
+              !proximityImpactRef.current
+            ) {
               impactPauseRef.current = true
+              proximityImpactRef.current = true
               setImpactPaused(true)
             }
           }
@@ -273,10 +291,6 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
           if (nowTime - lastLabelUpdateRef.current >= 100) {
             lastLabelUpdateRef.current = nowTime
             if (remaining <= 0) {
-              if (!impactPauseRef.current) {
-                impactPauseRef.current = true
-                setImpactPaused(true)
-              }
               setTimeRemainingLabel(translateRef.current('orbitViz.impactNow'))
             } else {
               setTimeRemainingLabel(formatTimeRemaining(remaining, languageRef.current))
@@ -393,6 +407,7 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
 
     useEffect(() => {
       impactPauseRef.current = false
+      proximityImpactRef.current = false
       setImpactPaused(false)
       simulatedElapsedRef.current = 0
       lastLabelUpdateRef.current = 0
@@ -400,6 +415,7 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
 
     useEffect(() => {
       impactPauseRef.current = false
+      proximityImpactRef.current = false
       setImpactPaused(false)
       simulatedElapsedRef.current = 0
       lastLabelUpdateRef.current = 0
@@ -440,6 +456,7 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
         earthMarkerRef.current.position.set(1, 0, 0)
       }
       impactPauseRef.current = false
+      proximityImpactRef.current = false
       setImpactPaused(false)
       simulatedElapsedRef.current = 0
       lastLabelUpdateRef.current = 0
@@ -487,8 +504,10 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
       const initialDiff = baseImpactDiffRef.current
       if (initialDiff <= 0) {
         setTimeRemainingLabel(translateRef.current('orbitViz.impactNow'))
-        impactPauseRef.current = true
-        setImpactPaused(true)
+        if (proximityImpactRef.current) {
+          impactPauseRef.current = true
+          setImpactPaused(true)
+        }
       } else {
         setTimeRemainingLabel(formatTimeRemaining(initialDiff, languageRef.current))
       }
