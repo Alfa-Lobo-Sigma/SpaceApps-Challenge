@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { NEO } from '../types'
 
-type MitigationMethod = {
+interface MitigationMethod {
   id: string
   name: string
   description: string
@@ -81,7 +81,7 @@ const formatTimeRemaining = (impactDate: Date | null) => {
   const months = Math.floor((totalDays % 365.25) / 30.4375)
   const days = Math.max(totalDays - Math.round(years * 365.25) - Math.round(months * 30.4375), 0)
 
-  const parts = []
+  const parts: string[] = []
   if (years) parts.push(`${years} year${years === 1 ? '' : 's'}`)
   if (months) parts.push(`${months} month${months === 1 ? '' : 's'}`)
   if (days || parts.length === 0) parts.push(`${days} day${days === 1 ? '' : 's'}`)

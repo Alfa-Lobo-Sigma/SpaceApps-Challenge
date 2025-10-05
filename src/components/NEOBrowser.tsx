@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
-import type { NEO, ImpactParams, OrbitalData } from '../types'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { ImpactParams, NEO, OrbitalData } from '../types'
 import { parseOrbitalData, getDefaultOrbit } from '../utils/orbital'
 import { IMPACTOR_2025, FALLBACK_NEOS, FALLBACK_NEO_MAP } from '../data/scenarioNeos'
 
@@ -11,6 +11,10 @@ interface NEOBrowserProps {
   initialNEOId?: string | null
 }
 
+interface BrowseResponse {
+  near_earth_objects?: NEO[]
+}
+
 export default function NEOBrowser({ onNEOSelect, onParamsUpdate, initialNEOId }: NEOBrowserProps) {
   const isMounted = useRef(true)
   const hasInitialised = useRef(false)
@@ -19,12 +23,12 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate, initialNEOId }
   const [searchQuery, setSearchQuery] = useState('')
   const [message, setMessage] = useState<string | null>(null)
 
-  const integrateScenario = (list: NEO[] = []) => {
+  const integrateScenario = useCallback((list: NEO[] = []) => {
     const hasImpactor = list.some((neo) => neo.id === IMPACTOR_2025.id)
     return hasImpactor ? list : [IMPACTOR_2025, ...list]
-  }
+  }, [])
 
-  const browseNEOs = async (page = 0) => {
+  const browseNEOs = useCallback(async (page = 0): Promise<NEO[]> => {
     setLoading(true)
     setMessage(null)
     try {
@@ -33,8 +37,8 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate, initialNEOId }
       if (!response.ok) {
         throw new Error(`NeoWs responded with ${response.status}`)
       }
-      const data = await response.json()
-      const dataset = integrateScenario(data.near_earth_objects || [])
+      const data = (await response.json()) as BrowseResponse
+      const dataset = integrateScenario(data.near_earth_objects ?? [])
       if (isMounted.current) {
         setNeos(dataset)
       }
@@ -51,23 +55,23 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate, initialNEOId }
         setLoading(false)
       }
     }
-  }
+  }, [integrateScenario])
 
-  const applyScenarioParams = (neo: NEO) => {
+  const applyScenarioParams = useCallback((neo: NEO) => {
     if (neo.impact_scenario?.material_density) {
       onParamsUpdate({ density: neo.impact_scenario.material_density })
     }
     if (neo.impact_scenario?.surface_type) {
       onParamsUpdate({ target: neo.impact_scenario.surface_type })
     }
-  }
+  }, [onParamsUpdate])
 
-  const resolveOrbitalData = (neo: NEO): OrbitalData => {
+  const resolveOrbitalData = useCallback((neo: NEO): OrbitalData => {
     const rawOrbitalData = neo.orbital_data ?? FALLBACK_NEO_MAP.get(neo.id)?.orbital_data
     return parseOrbitalData(rawOrbitalData) ?? getDefaultOrbit()
-  }
+  }, [])
 
-  const handleSelection = (neo: NEO) => {
+  const handleSelection = useCallback((neo: NEO) => {
     const diameter = neo.estimated_diameter?.meters
     if (diameter) {
       const avgDiameter = Math.round(
@@ -85,9 +89,9 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate, initialNEOId }
 
     const orbitalData = resolveOrbitalData(neo)
     onNEOSelect(neo, orbitalData)
-  }
+  }, [applyScenarioParams, onNEOSelect, onParamsUpdate, resolveOrbitalData])
 
-  const selectNEO = async (id: string) => {
+  const selectNEO = useCallback(async (id: string) => {
     if (id === IMPACTOR_2025.id) {
       handleSelection(IMPACTOR_2025)
       return
@@ -99,7 +103,7 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate, initialNEOId }
       if (!response.ok) {
         throw new Error(`NeoWs detail responded with ${response.status}`)
       }
-      const neo: NEO = await response.json()
+      const neo = (await response.json()) as NEO
       if (isMounted.current) {
         handleSelection(neo)
       }
@@ -114,11 +118,12 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate, initialNEOId }
         handleSelection(fallback)
       }
     }
-  }
+  }, [handleSelection])
 
   useEffect(() => {
     isMounted.current = true
-    browseNEOs().then((dataset) => {
+    void (async () => {
+      const dataset = await browseNEOs()
       if (!isMounted.current || hasInitialised.current) {
         return
       }
@@ -126,7 +131,7 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate, initialNEOId }
       hasInitialised.current = true
 
       if (initialNEOId) {
-        selectNEO(initialNEOId)
+        await selectNEO(initialNEOId)
         return
       }
 
@@ -134,22 +139,30 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate, initialNEOId }
       if (scenarioNeo) {
         handleSelection(scenarioNeo)
       }
-    })
+    })()
     return () => {
       isMounted.current = false
     }
-  }, [initialNEOId])
+  }, [browseNEOs, handleSelection, initialNEOId, selectNEO])
 
   const filteredNEOs = neos.filter(neo =>
     neo.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  const handleBrowseClick = () => {
+    void browseNEOs()
+  }
+
+  const handleNeoClick = (id: string) => {
+    void selectNEO(id)
+  }
 
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">1) Browse NEOs (NASA NeoWs)</h2>
       <div className="flex gap-2">
         <button
-          onClick={() => browseNEOs()}
+          onClick={handleBrowseClick}
           className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
           disabled={loading}
         >
@@ -173,13 +186,13 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate, initialNEOId }
             const diameterStr = diameter
               ? `${diameter.estimated_diameter_min.toFixed(0)}–${diameter.estimated_diameter_max.toFixed(0)} m`
               : '—'
-            const a = neo.orbital_data?.semi_major_axis
-            const e = neo.orbital_data?.eccentricity
+              const a = neo.orbital_data?.semi_major_axis
+              const e = neo.orbital_data?.eccentricity
 
             return (
               <button
                 key={neo.id}
-                onClick={() => selectNEO(neo.id)}
+                onClick={() => handleNeoClick(neo.id)}
                 className="w-full text-left px-3 py-2 hover:bg-white/5 border-b border-white/5 transition-colors"
               >
                 <div className="text-sm font-medium flex items-center gap-2">
@@ -195,7 +208,7 @@ export default function NEOBrowser({ onNEOSelect, onParamsUpdate, initialNEOId }
                   ) : null}
                 </div>
                 <div className="text-[11px] label">
-                  est. diameter: {diameterStr} • a={a || '—'} AU • e={e || '—'}
+                  est. diameter: {diameterStr} • a={a ?? '—'} AU • e={e ?? '—'}
                 </div>
               </button>
             )

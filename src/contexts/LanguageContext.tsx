@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, type ReactNode } from 'react'
 
 type Language = 'en' | 'es'
 
@@ -10,21 +10,42 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
+interface LanguageProviderProps {
+  children: ReactNode
+}
+
+type TranslationValue = string | TranslationDictionary
+interface TranslationDictionary {
+  [key: string]: TranslationValue
+}
+
+const isTranslationDictionary = (value: TranslationValue): value is TranslationDictionary =>
+  typeof value === 'object' && value !== null
+
+export function LanguageProvider({ children }: LanguageProviderProps) {
   const [language, setLanguage] = useState<Language>(() => {
-    const saved = localStorage.getItem('language')
-    return (saved as Language) || 'en'
+    const saved = localStorage.getItem('language') as Language | null
+    return saved ?? 'en'
   })
 
   const t = (key: string): string => {
     const keys = key.split('.')
-    let value: any = translations[language]
+    let current: TranslationValue = translations[language]
 
-    for (const k of keys) {
-      value = value?.[k]
+    for (const segment of keys) {
+      if (!isTranslationDictionary(current)) {
+        return key
+      }
+
+      const next: TranslationValue | undefined = current[segment]
+      if (next === undefined) {
+        return key
+      }
+
+      current = next
     }
 
-    return value || key
+    return typeof current === 'string' ? current : key
   }
 
   const handleSetLanguage = (lang: Language) => {
@@ -47,7 +68,7 @@ export function useLanguage() {
   return context
 }
 
-const translations: Record<Language, any> = {
+const translations: Record<Language, TranslationDictionary> = {
   en: {
     header: {
       title: 'Impactor‑2025',

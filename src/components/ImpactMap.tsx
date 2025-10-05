@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 'react'
 import L from 'leaflet'
 import type { ImpactResults } from '../types'
 import type { GeologyAdjustedResults } from '../utils/geology'
@@ -11,7 +11,11 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 
-delete (L.Icon.Default.prototype as any)._getIconUrl
+type IconDefaultPrototype = L.Icon.Default & {
+  _getIconUrl?: () => string
+}
+
+delete (L.Icon.Default.prototype as IconDefaultPrototype)._getIconUrl
 L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
   iconRetinaUrl: markerIcon2x,
@@ -39,6 +43,57 @@ const ImpactMap = forwardRef<ImpactMapHandle, ImpactMapProps>(
     const craterRingRef = useRef<L.Circle | null>(null)
     const tileLayerRef = useRef<L.TileLayer | null>(null)
 
+    const updateRings = useCallback(() => {
+      if (!mapRef.current || !impactMarkerRef.current) {
+        return
+      }
+
+      const effectiveDevastation =
+        adjustedResults?.adjustedDevastationRadius ?? results?.devastationRadius
+      const effectiveCrater =
+        adjustedResults?.adjustedCraterDiameter ?? results?.craterDiameter
+
+      if (effectiveDevastation == null || effectiveCrater == null) {
+        if (devRingRef.current) {
+          devRingRef.current.remove()
+          devRingRef.current = null
+        }
+        if (craterRingRef.current) {
+          craterRingRef.current.remove()
+          craterRingRef.current = null
+        }
+        return
+      }
+
+      const latLng = impactMarkerRef.current.getLatLng()
+
+      if (devRingRef.current) {
+        devRingRef.current.remove()
+      }
+      if (craterRingRef.current) {
+        craterRingRef.current.remove()
+      }
+
+      const devRadius = effectiveDevastation * 1000
+      const craterRadius = (effectiveCrater / 2) * 1000
+
+      const devRing = L.circle(latLng, {
+        radius: devRadius,
+        color: '#f59e0b',
+        fill: false,
+        weight: 2,
+      }).addTo(mapRef.current)
+      devRingRef.current = devRing
+
+      const craterRing = L.circle(latLng, {
+        radius: craterRadius,
+        color: '#ef4444',
+        fill: false,
+        weight: 2,
+      }).addTo(mapRef.current)
+      craterRingRef.current = craterRing
+    }, [adjustedResults, results])
+
     // Initialize map
     useEffect(() => {
       if (!containerRef.current || mapRef.current) return
@@ -48,7 +103,7 @@ const ImpactMap = forwardRef<ImpactMapHandle, ImpactMapProps>(
 
       const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 15,
-        attribution: '&copy; OpenStreetMap contributors'
+        attribution: '&copy; OpenStreetMap contributors',
       })
       tileLayer.addTo(map)
       tileLayerRef.current = tileLayer
@@ -92,7 +147,7 @@ const ImpactMap = forwardRef<ImpactMapHandle, ImpactMapProps>(
         map.remove()
         mapRef.current = null
       }
-    }, [])
+    }, [location, onLocationSelect])
 
     // Update location
     useEffect(() => {
@@ -107,63 +162,12 @@ const ImpactMap = forwardRef<ImpactMapHandle, ImpactMapProps>(
 
       // Update rings
       updateRings()
-    }, [location])
+    }, [location, updateRings])
 
     // Update rings when results change
     useEffect(() => {
       updateRings()
-    }, [results, adjustedResults])
-
-    const updateRings = () => {
-      if (!mapRef.current || !impactMarkerRef.current) return
-
-      const effectiveDevastation =
-        adjustedResults?.adjustedDevastationRadius ?? results?.devastationRadius
-      const effectiveCrater =
-        adjustedResults?.adjustedCraterDiameter ?? results?.craterDiameter
-
-      if (effectiveDevastation == null || effectiveCrater == null) {
-        if (devRingRef.current) {
-          devRingRef.current.remove()
-          devRingRef.current = null
-        }
-        if (craterRingRef.current) {
-          craterRingRef.current.remove()
-          craterRingRef.current = null
-        }
-        return
-      }
-
-      const latLng = impactMarkerRef.current.getLatLng()
-
-      // Remove old rings
-      if (devRingRef.current) {
-        devRingRef.current.remove()
-      }
-      if (craterRingRef.current) {
-        craterRingRef.current.remove()
-      }
-
-      // Add new rings
-      const devRadius = effectiveDevastation * 1000 // convert km to meters
-      const craterRadius = (effectiveCrater / 2) * 1000 // convert km to meters
-
-      const devRing = L.circle(latLng, {
-        radius: devRadius,
-        color: '#f59e0b',
-        fill: false,
-        weight: 2
-      }).addTo(mapRef.current)
-      devRingRef.current = devRing
-
-      const craterRing = L.circle(latLng, {
-        radius: craterRadius,
-        color: '#ef4444',
-        fill: false,
-        weight: 2
-      }).addTo(mapRef.current)
-      craterRingRef.current = craterRing
-    }
+    }, [updateRings])
 
     useImperativeHandle(
       ref,

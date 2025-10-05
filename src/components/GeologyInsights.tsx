@@ -15,7 +15,7 @@ const sourceLabel: Record<GeologyAssessment['source'], string> = {
 }
 
 const hazardEntries = (modifiers: GeologyAdjustedResults['hazardAdjustments']) => {
-  const entries: Array<{ label: string; value: number }> = [
+  const entries: { label: string; value: number }[] = [
     { label: 'Shock', value: modifiers.shock },
     { label: 'Thermal', value: modifiers.thermal },
     { label: 'Seismic', value: modifiers.seismic },

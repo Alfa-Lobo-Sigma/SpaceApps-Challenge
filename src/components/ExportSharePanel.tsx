@@ -277,6 +277,30 @@ export default function ExportSharePanel({
     resetStatusLater()
   }
 
+  const handleGeneratePdfClick = () => {
+    void handleGeneratePdf()
+  }
+
+  const handleCopyShareLinkClick = () => {
+    void handleCopyShareLink()
+  }
+
+  const handleExportOrbitImageClick = () => {
+    void handleExportOrbitImage()
+  }
+
+  const handleExportMapImageClick = () => {
+    void handleExportMapImage()
+  }
+
+  const handleDownloadJsonClick = () => {
+    void handleDownloadJson()
+  }
+
+  const handleDownloadCsvClick = () => {
+    void handleDownloadCsv()
+  }
+
   return (
     <div className="space-y-3 rounded-2xl border border-white/10 bg-black/30 p-4 text-sm">
       <div>
@@ -286,42 +310,42 @@ export default function ExportSharePanel({
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <button
           type="button"
-          onClick={handleGeneratePdf}
+          onClick={handleGeneratePdfClick}
           className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left transition-colors hover:border-white/30 hover:bg-white/10"
         >
           Generate PDF report
         </button>
         <button
           type="button"
-          onClick={handleCopyShareLink}
+          onClick={handleCopyShareLinkClick}
           className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left transition-colors hover:border-white/30 hover:bg-white/10"
         >
           Copy shareable link
         </button>
         <button
           type="button"
-          onClick={handleExportOrbitImage}
+          onClick={handleExportOrbitImageClick}
           className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left transition-colors hover:border-white/30 hover:bg-white/10"
         >
           Export orbit visualization
         </button>
         <button
           type="button"
-          onClick={handleExportMapImage}
+          onClick={handleExportMapImageClick}
           className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left transition-colors hover:border-white/30 hover:bg-white/10"
         >
           Export impact map
         </button>
         <button
           type="button"
-          onClick={handleDownloadJson}
+          onClick={handleDownloadJsonClick}
           className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left transition-colors hover:border-white/30 hover:bg-white/10"
         >
           Download data (JSON)
         </button>
         <button
           type="button"
-          onClick={handleDownloadCsv}
+          onClick={handleDownloadCsvClick}
           className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left transition-colors hover:border-white/30 hover:bg-white/10"
         >
           Download data (CSV)

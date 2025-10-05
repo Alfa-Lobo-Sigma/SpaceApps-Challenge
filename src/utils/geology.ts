@@ -13,7 +13,7 @@ const within = ([min, max]: [number, number], value: number) => {
   return value >= lower && value <= upper
 }
 
-const LAND_BOUNDS: Array<{ lat: [number, number]; lng: [number, number] }> = [
+const LAND_BOUNDS: { lat: [number, number]; lng: [number, number] }[] = [
   { lat: [-60, 72], lng: [-170, -30] }, // North & South America
   { lat: [-40, 70], lng: [-20, 50] }, // Africa & Europe
   { lat: [5, 75], lng: [45, 180] }, // Asia

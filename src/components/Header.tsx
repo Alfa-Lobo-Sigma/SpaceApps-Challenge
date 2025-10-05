@@ -2,7 +2,7 @@ import type { MouseEventHandler } from 'react'
 import ThemeSwitcher from './ThemeSwitcher'
 import LanguageSwitcher from './LanguageSwitcher'
 
-type HeaderProps = {
+interface HeaderProps {
   onPreparednessClick: MouseEventHandler<HTMLButtonElement>
   onTutorialClick: MouseEventHandler<HTMLButtonElement>
 }

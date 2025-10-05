@@ -65,7 +65,7 @@ export interface NEO {
     ascending_node_longitude: string
     perihelion_argument: string
   }
-  close_approach_data?: Array<{
+  close_approach_data?: {
     close_approach_date?: string
     relative_velocity: {
       kilometers_per_second: string
@@ -73,7 +73,7 @@ export interface NEO {
     miss_distance?: {
       kilometers?: string
     }
-  }>
+  }[]
   impact_scenario?: {
     probability: number
     impact_date: string

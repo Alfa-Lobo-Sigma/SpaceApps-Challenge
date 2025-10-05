@@ -4,14 +4,31 @@ import type { OrbitalData } from '../types'
 const TWO_PI = Math.PI * 2
 const YEAR_S = 365.25 * 86400 // seconds in a Julian year
 
-export function parseOrbitalData(orbitalDataRaw: any): OrbitalData | null {
+type RawOrbitalData = Partial<{
+  semi_major_axis: string | number
+  eccentricity: string | number
+  inclination: string | number
+  ascending_node_longitude: string | number
+  perihelion_argument: string | number
+}>
+
+const parseNumeric = (value: string | number | undefined, fallback: number) => {
+  if (value === undefined) {
+    return fallback
+  }
+
+  const numeric = Number(value)
+  return Number.isFinite(numeric) ? numeric : fallback
+}
+
+export function parseOrbitalData(orbitalDataRaw: RawOrbitalData | null | undefined): OrbitalData | null {
   if (!orbitalDataRaw) return null
 
-  const a = Number(orbitalDataRaw.semi_major_axis || 1)
-  const e = Number(orbitalDataRaw.eccentricity || 0.1)
-  const inc = THREE.MathUtils.degToRad(Number(orbitalDataRaw.inclination || 0))
-  const omega = THREE.MathUtils.degToRad(Number(orbitalDataRaw.ascending_node_longitude || 0))
-  const w = THREE.MathUtils.degToRad(Number(orbitalDataRaw.perihelion_argument || 0))
+  const a = parseNumeric(orbitalDataRaw.semi_major_axis, 1)
+  const e = parseNumeric(orbitalDataRaw.eccentricity, 0.1)
+  const inc = THREE.MathUtils.degToRad(parseNumeric(orbitalDataRaw.inclination, 0))
+  const omega = THREE.MathUtils.degToRad(parseNumeric(orbitalDataRaw.ascending_node_longitude, 0))
+  const w = THREE.MathUtils.degToRad(parseNumeric(orbitalDataRaw.perihelion_argument, 0))
 
   return { a, e, i: inc, omega, w }
 }

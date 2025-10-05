@@ -150,7 +150,7 @@ function App() {
     }
   }, [])
 
-  const dismissTutorial = (_completed: boolean) => {
+  const dismissTutorial = () => {
     setTutorialOpen(false)
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('impactor.tutorialComplete', 'true')

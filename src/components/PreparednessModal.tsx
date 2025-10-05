@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react'
 
-type PreparednessModalProps = {
+interface PreparednessModalProps {
   open: boolean
   onClose: () => void
 }
 
 type ScenarioKey = 'continental' | 'oceanic' | 'urban'
 
-type IndustryImpact = {
+interface IndustryImpact {
   sector: string
   impact: string
   recommendations: string
