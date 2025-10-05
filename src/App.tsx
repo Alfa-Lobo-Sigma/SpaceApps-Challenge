@@ -249,6 +249,7 @@ function App() {
                   ref={orbitRef}
                   orbitalData={orbitalData}
                   impactDate={selectedNEO?.impact_scenario?.impact_date ?? null}
+                  asteroidName={selectedNEO?.name ?? null}
                 />
               </div>
               <div className="panel rounded-2xl p-5">

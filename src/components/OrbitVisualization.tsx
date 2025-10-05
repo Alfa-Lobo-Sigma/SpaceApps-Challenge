@@ -34,10 +34,11 @@ export interface OrbitVisualizationHandle {
 interface OrbitVisualizationProps {
   orbitalData: OrbitalData | null
   impactDate?: string | null
+  asteroidName?: string | null
 }
 
 const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizationProps>(
-  ({ orbitalData, impactDate }, ref) => {
+  ({ orbitalData, impactDate, asteroidName }, ref) => {
     const { t, language } = useLanguage()
     const containerRef = useRef<HTMLDivElement>(null)
     const sceneRef = useRef<THREE.Scene | null>(null)
@@ -196,7 +197,8 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
 
       const asteroidLabelElement = document.createElement('div')
       asteroidLabelElement.className = 'orbit-label'
-      asteroidLabelElement.textContent = translateRef.current('orbitViz.asteroid')
+      asteroidLabelElement.textContent =
+        asteroidName ?? translateRef.current('orbitViz.asteroid')
       asteroidLabelElementRef.current = asteroidLabelElement
       const asteroidLabelObject = new CSS2DObject(asteroidLabelElement)
       asteroidLabelObject.position.set(0, 0.12, 0)
@@ -465,9 +467,9 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
         earthLabelElementRef.current.textContent = t('orbitViz.earth')
       }
       if (asteroidLabelElementRef.current) {
-        asteroidLabelElementRef.current.textContent = t('orbitViz.asteroid')
+        asteroidLabelElementRef.current.textContent = asteroidName ?? t('orbitViz.asteroid')
       }
-    }, [language, t])
+    }, [asteroidName, language, t])
 
     useEffect(() => {
       if (!parsedImpactDate) {
@@ -579,7 +581,9 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
             </button>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <span className="label whitespace-nowrap min-w-[60px]">{t('orbitViz.asteroid')}</span>
+            <span className="label whitespace-nowrap min-w-[60px]">
+              {asteroidName ?? t('orbitViz.asteroid')}
+            </span>
             <input
               type="range"
               min="0"
