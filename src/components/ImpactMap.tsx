@@ -41,6 +41,11 @@ const ImpactMap = forwardRef<ImpactMapHandle, ImpactMapProps>(
     const tileLayerRef = useRef<L.TileLayer | null>(null)
     const [affectedCities, setAffectedCities] = useState<AffectedCity[]>([])
     const [loadingCities, setLoadingCities] = useState(false)
+    const latestLocationRef = useRef(location)
+
+    useEffect(() => {
+      latestLocationRef.current = location
+    }, [location])
 
     // Initialize map
     useEffect(() => {
@@ -121,6 +126,38 @@ const ImpactMap = forwardRef<ImpactMapHandle, ImpactMapProps>(
     useEffect(() => {
       updateRings()
     }, [results, adjustedResults])
+
+    // Ensure the map resizes correctly when the container becomes visible (e.g. when switching tabs)
+    useEffect(() => {
+      const container = containerRef.current
+      const map = mapRef.current
+
+      if (!container || !map) {
+        return
+      }
+
+      const observer = new ResizeObserver(() => {
+        if (!mapRef.current) {
+          return
+        }
+
+        requestAnimationFrame(() => {
+          const activeMap = mapRef.current
+          if (!activeMap) {
+            return
+          }
+
+          activeMap.invalidateSize()
+          activeMap.setView(latestLocationRef.current, activeMap.getZoom())
+        })
+      })
+
+      observer.observe(container)
+
+      return () => {
+        observer.disconnect()
+      }
+    }, [])
 
     // Fetch affected cities when location or devastation radius changes
     useEffect(() => {
