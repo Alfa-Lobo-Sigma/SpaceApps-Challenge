@@ -278,7 +278,7 @@ export default function ExportSharePanel({
   }
 
   return (
-    <div className="space-y-3 rounded-2xl border border-white/10 bg-black/30 p-4 text-sm">
+    <div className="space-y-4 text-sm">
       <div>
         <h3 className="text-base font-semibold">Export &amp; sharing</h3>
         <p className="text-[11px] label">Capture the current scenario to share with colleagues or archive planning drills.</p>
