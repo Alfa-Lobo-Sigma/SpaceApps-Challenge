@@ -276,7 +276,11 @@ const OrbitVisualization = forwardRef<OrbitVisualizationHandle, OrbitVisualizati
             ) {
               impactPauseRef.current = true
               proximityImpactRef.current = true
+              if (baseImpactDiffRef.current != null) {
+                simulatedElapsedRef.current = baseImpactDiffRef.current
+              }
               setImpactPaused(true)
+              setTimeRemainingLabel(translateRef.current('orbitViz.impactNow'))
             }
           }
 
