@@ -316,6 +316,14 @@ const translations: Record<Language, any> = {
       linkCopied: 'Link copied to clipboard!',
       exportPDF: 'Export as PDF',
       exportJSON: 'Export as JSON'
+    },
+    tabs: {
+      orbit3d: '3D Orbit (animated)',
+      geology: 'Enhanced USGS Geology',
+      impactMap: 'Impact Map',
+      scenarioFocus: 'Scenario Focus',
+      impactParameters: 'Impact Parameters',
+      exportSharing: 'Export & Sharing'
     }
   },
   es: {
@@ -586,6 +594,14 @@ const translations: Record<Language, any> = {
       linkCopied: '¡Enlace copiado al portapapeles!',
       exportPDF: 'Exportar como PDF',
       exportJSON: 'Exportar como JSON'
+    },
+    tabs: {
+      orbit3d: 'Órbita 3D (animada)',
+      geology: 'Geología USGS mejorada',
+      impactMap: 'Mapa de Impacto',
+      scenarioFocus: 'Enfoque del Escenario',
+      impactParameters: 'Parámetros de Impacto',
+      exportSharing: 'Exportar y Compartir'
     }
   }
 }

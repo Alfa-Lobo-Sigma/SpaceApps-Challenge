@@ -20,8 +20,11 @@ import { getDefaultOrbit, parseOrbitalData } from './utils/orbital'
 import OnboardingTutorial from './components/OnboardingTutorial'
 import ExportSharePanel from './components/ExportSharePanel'
 import { parseShareState, currentShareUrl } from './utils/sharing'
+import { useLanguage } from './contexts/LanguageContext'
 
 function App() {
+  const { t } = useLanguage()
+
   const [initialShare] = useState(() => {
     if (typeof window === 'undefined') {
       return null
@@ -190,7 +193,7 @@ function App() {
   const rightPanelTabs = [
     {
       id: '3d-orbit',
-      label: '3D Orbit (animated)',
+      label: t('tabs.orbit3d'),
       content: (
         <div className="space-y-6">
           <OrbitVisualization
@@ -205,7 +208,7 @@ function App() {
     },
     {
       id: 'enhanced-geology',
-      label: 'Enhanced USGS Geology',
+      label: t('tabs.geology'),
       content: (
         <GeologyInsights
           assessment={geologyAssessment}
@@ -215,7 +218,7 @@ function App() {
     },
     {
       id: 'impact-map',
-      label: 'Impact Map',
+      label: t('tabs.impactMap'),
       content: (
         <ImpactMap
           ref={mapRef}
@@ -228,7 +231,7 @@ function App() {
     },
     {
       id: 'scenario-focus',
-      label: 'Scenario Focus',
+      label: t('tabs.scenarioFocus'),
       content: (
         <NEOScenarioSummary
           neo={selectedNEO}
@@ -241,7 +244,7 @@ function App() {
     },
     {
       id: 'impact-parameters',
-      label: 'Impact Parameters',
+      label: t('tabs.impactParameters'),
       content: (
         <ImpactParameters
           params={impactParams}
@@ -252,7 +255,7 @@ function App() {
     },
     {
       id: 'export-sharing',
-      label: 'Export & Sharing',
+      label: t('tabs.exportSharing'),
       content: (
         <ExportSharePanel
           neo={selectedNEO}

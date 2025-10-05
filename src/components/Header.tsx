@@ -1,6 +1,7 @@
 import type { MouseEventHandler } from 'react'
 import ThemeSwitcher from './ThemeSwitcher'
 import LanguageSwitcher from './LanguageSwitcher'
+import { useLanguage } from '../contexts/LanguageContext'
 
 type HeaderProps = {
   onPreparednessClick: MouseEventHandler<HTMLButtonElement>
@@ -8,15 +9,17 @@ type HeaderProps = {
 }
 
 export default function Header({ onPreparednessClick, onTutorialClick }: HeaderProps) {
+  const { t } = useLanguage()
+
   return (
-    <header className="px-6 py-4 border-b border-white/10 sticky top-0 z-[900] panel">
+    <header className="px-6 py-4 border-b sticky top-0 z-[900] panel" style={{ borderColor: 'var(--border-color)' }}>
       <div className="max-w-7xl mx-auto flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-4">
-          <img src="/logo.png" alt="Team Logo" className="h-12 w-auto" />
+        <div className="flex items-center gap-3">
+          <img src="/favicon.ico" alt="Impactor-2025 Logo" className="h-10 w-10" />
           <div>
-            <div className="text-xl font-semibold">Impactor‑2025</div>
+            <div className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>{t('header.title')}</div>
             <div className="text-xs sm:text-sm label">
-              NASA NeoWs + Leaflet + Three.js • real data, simplified physics
+              {t('header.subtitle')}
             </div>
           </div>
         </div>
@@ -26,16 +29,26 @@ export default function Header({ onPreparednessClick, onTutorialClick }: HeaderP
           <button
             type="button"
             onClick={onTutorialClick}
-            className="self-start rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-white transition-colors hover:border-white/40 hover:bg-white/15"
+            className="self-start rounded-full border px-4 py-2 text-sm font-medium transition-all hover:shadow-md"
+            style={{
+              borderColor: 'var(--border-color)',
+              backgroundColor: 'var(--metric-bg)',
+              color: 'var(--text-primary)'
+            }}
           >
-            Launch tutorial
+            {t('tutorial.welcome')}
           </button>
           <button
             type="button"
             onClick={onPreparednessClick}
-            className="self-start rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:border-white/40 hover:bg-white/20"
+            className="self-start rounded-full border px-4 py-2 text-sm font-medium shadow-sm transition-all hover:shadow-md"
+            style={{
+              borderColor: 'var(--border-color)',
+              backgroundColor: 'var(--metric-bg)',
+              color: 'var(--text-primary)'
+            }}
           >
-            Impact preparedness guide
+            {t('preparedness.title')}
           </button>
         </div>
       </div>
