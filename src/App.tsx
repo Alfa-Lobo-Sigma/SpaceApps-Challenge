@@ -245,7 +245,11 @@ function App() {
             </aside>
             <section className="flex flex-col gap-6 min-w-0">
               <div className="panel rounded-2xl p-5">
-                <OrbitVisualization ref={orbitRef} orbitalData={orbitalData} />
+                <OrbitVisualization
+                  ref={orbitRef}
+                  orbitalData={orbitalData}
+                  impactDate={selectedNEO?.impact_scenario?.impact_date ?? null}
+                />
               </div>
               <div className="panel rounded-2xl p-5">
                 <ImpactMap
